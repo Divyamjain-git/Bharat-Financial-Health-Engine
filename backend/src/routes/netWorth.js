@@ -1,0 +1,12 @@
+const express = require('express');
+const r = express.Router();
+const c = require('../controllers/netWorthController');
+const { protect } = require('../middleware/auth');
+r.get('/', protect, c.getNetWorth);
+r.post('/assets', protect, c.addAsset);
+r.put('/assets/:assetId', protect, c.updateAsset);
+r.delete('/assets/:assetId', protect, c.deleteAsset);
+r.post('/liabilities', protect, c.addLiability);
+r.delete('/liabilities/:liabilityId', protect, c.deleteLiability);
+r.get('/history', protect, c.getHistory);
+module.exports = r;
