@@ -1,0 +1,258 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                   Int               @id @default(autoincrement())
+  name                 String
+  email                String            @unique
+  password             String
+  role                 String
+  phone                String?
+  isOnboardingComplete Boolean           @default(false)
+  lastLogin            DateTime?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+
+  financialProfile     FinancialProfile?
+  loans                Loan[]
+  goals                Goal[]
+  budgets              Budget[]
+  netWorth             NetWorth?
+  scores               Score[]
+  alerts               Alert[]
+  recommendations      Recommendation[]
+}
+
+model FinancialProfile {
+  id                    Int        @id @default(autoincrement())
+  userId                Int        @unique
+  user                  User       @relation(fields: [userId], references: [id])
+  netMonthlySalary      Float      @default(0)
+  annualBonus           Float      @default(0)
+  otherMonthlyIncome    Float      @default(0)
+  last12MonthRevenue    Float[]    @default([])
+  avgMonthlyProfit      Float      @default(0)
+  emergencyFundAmount   Float      @default(0)
+  monthlySavings        Float      @default(0)
+  lastScoreCalculatedAt DateTime?
+  houseRent             Float      @default(0)
+  groceries             Float      @default(0)
+  electricityBill       Float      @default(0)
+  gasBill               Float      @default(0)
+  waterBill             Float      @default(0)
+  internetMobile        Float      @default(0)
+  medicalExpenses       Float      @default(0)
+  vehicleFuel           Float      @default(0)
+  schoolFees            Float      @default(0)
+  otherExpenses         Float      @default(0)
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+
+  creditCards           CreditCard[]
+}
+
+model CreditCard {
+  id                 Int              @id @default(autoincrement())
+  financialProfileId Int
+  financialProfile   FinancialProfile @relation(fields: [financialProfileId], references: [id])
+  cardName           String           @default("Credit Card")
+  creditLimit        Float
+  outstandingBalance Float
+}
+
+model Loan {
+  id                 Int      @id @default(autoincrement())
+  userId             Int
+  user               User     @relation(fields: [userId], references: [id])
+  loanType           String
+  lenderName         String   @default("Bank/NBFC")
+  principalAmount    Float
+  outstandingBalance Float
+  monthlyEMI         Float
+  interestRate       Float
+  remainingMonths    Int?
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model Goal {
+  id                  Int         @id @default(autoincrement())
+  userId              Int
+  user                User        @relation(fields: [userId], references: [id])
+  title               String
+  category            String
+  icon                String      @default("🎯")
+  targetAmount        Float
+  currentAmount       Float       @default(0)
+  monthlyContribution Float       @default(0)
+  targetDate          DateTime
+  priority            String      @default("medium")
+  status              String      @default("active")
+  notes               String      @default("")
+  achievedAt          DateTime?
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  milestones          Milestone[]
+}
+
+model Milestone {
+  id           Int       @id @default(autoincrement())
+  goalId       Int
+  goal         Goal      @relation(fields: [goalId], references: [id])
+  title        String
+  targetAmount Float
+  achievedAt   DateTime?
+}
+
+model Budget {
+  id                         Int      @id @default(autoincrement())
+  userId                     Int      @unique
+  user                       User     @relation(fields: [userId], references: [id])
+  monthlyIncome              Float
+  needsPercent               Float    @default(50)
+  wantsPercent               Float    @default(30)
+  savingsPercent             Float    @default(20)
+  month                      String?
+  needsHouseRentBudgeted     Float?
+  needsHouseRentActual       Float?
+  needsGroceriesBudgeted     Float?
+  needsGroceriesActual       Float?
+  needsUtilitiesBudgeted     Float?
+  needsUtilitiesActual       Float?
+  needsTransportBudgeted     Float?
+  needsTransportActual       Float?
+  needsInsuranceBudgeted     Float?
+  needsInsuranceActual       Float?
+  needsMedicalBudgeted       Float?
+  needsMedicalActual         Float?
+  needsLoanEMIsBudgeted      Float?
+  needsLoanEMIsActual        Float?
+  wantsDiningBudgeted        Float?
+  wantsDiningActual          Float?
+  wantsEntertainmentBudgeted Float?
+  wantsEntertainmentActual   Float?
+  wantsShoppingBudgeted      Float?
+  wantsShoppingActual        Float?
+  wantsSubscriptionsBudgeted Float?
+  wantsSubscriptionsActual   Float?
+  wantsTravelBudgeted        Float?
+  wantsTravelActual          Float?
+  savingsEmergencyBudgeted   Float?
+  savingsEmergencyActual     Float?
+  savingsInvestmentsBudgeted Float?
+  savingsInvestmentsActual   Float?
+  savingsGoalsBudgeted       Float?
+  savingsGoalsActual         Float?
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+}
+
+model NetWorth {
+  id          Int         @id @default(autoincrement())
+  userId      Int         @unique
+  user        User        @relation(fields: [userId], references: [id])
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  assets      Asset[]
+  liabilities Liability[]
+  snapshots   Snapshot[]
+}
+
+model Asset {
+  id            Int      @id @default(autoincrement())
+  netWorthId    Int
+  netWorth      NetWorth @relation(fields: [netWorthId], references: [id])
+  name          String
+  category      String
+  currentValue  Float
+  purchaseValue Float    @default(0)
+  notes         String   @default("")
+}
+
+model Liability {
+  id                Int      @id @default(autoincrement())
+  netWorthId        Int
+  netWorth          NetWorth @relation(fields: [netWorthId], references: [id])
+  name              String
+  category          String
+  outstandingAmount Float
+  interestRate      Float    @default(0)
+  notes             String   @default("")
+}
+
+model Snapshot {
+  id               Int      @id @default(autoincrement())
+  netWorthId       Int
+  netWorth         NetWorth @relation(fields: [netWorthId], references: [id])
+  totalAssets      Float
+  totalLiabilities Float
+  netWorthValue    Float
+  recordedAt       DateTime @default(now())
+}
+
+model Score {
+  id                   Int              @id @default(autoincrement())
+  userId               Int
+  user                 User             @relation(fields: [userId], references: [id])
+  totalScore           Float
+  grade                String
+  dtiScore             Float            @default(0)
+  savingsScore         Float            @default(0)
+  emergencyScore       Float            @default(0)
+  creditScore          Float            @default(0)
+  expenseScore         Float            @default(0)
+  monthlyIncome        Float            @default(0)
+  totalMonthlyEMI      Float            @default(0)
+  totalMonthlyExpenses Float            @default(0)
+  savingsRate          Float            @default(0)
+  dtiRatio             Float            @default(0)
+  creditUtilization    Float            @default(0)
+  emergencyFundMonths  Float            @default(0)
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  recommendations      Recommendation[]
+}
+
+model Alert {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  type        String
+  severity    String
+  title       String
+  message     String
+  actionLabel String?
+  actionRoute String?
+  metadata    Json     @default("{}")
+  isRead      Boolean  @default(false)
+  isDismissed Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Recommendation {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  scoreId     Int?
+  score       Score?   @relation(fields: [scoreId], references: [id])
+  category    String
+  priority    String
+  title       String
+  description String
+  actionStep  String?
+  isRead      Boolean  @default(false)
+  isDismissed Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
