@@ -1,13 +1,6 @@
-/**
- * Authentication & Authorization Middleware
- */
-
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const prisma = require('../config/database');
 
-/**
- * protect - Verify JWT and attach user to request
- */
 const protect = async (req, res, next) => {
   try {
     let token;
@@ -17,22 +10,22 @@ const protect = async (req, res, next) => {
     }
 
     if (!token) {
-      return res.status(401).json({
-        success: false,
-        message: 'Access denied. Please login to continue.'
-      });
+      return res.status(401).json({ success: false, message: 'Access denied. Please login to continue.' });
     }
 
-    // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Get user from database (ensure user still exists)
-    const user = await User.findById(decoded.id).select('-password');
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.id },
+      select: {
+        id: true, name: true, email: true, role: true,
+        phone: true, isOnboardingComplete: true, lastLogin: true,
+        createdAt: true, updatedAt: true
+      }
+    });
+
     if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: 'User no longer exists.'
-      });
+      return res.status(401).json({ success: false, message: 'User no longer exists.' });
     }
 
     req.user = user;
@@ -49,10 +42,6 @@ const protect = async (req, res, next) => {
   }
 };
 
-/**
- * authorize - Role-based access control
- * @param  {...string} roles - Allowed roles
- */
 const authorize = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {

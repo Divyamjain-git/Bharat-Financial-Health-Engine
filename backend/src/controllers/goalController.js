@@ -1,67 +1,117 @@
-const Goal = require('../models/Goal');
-const Score = require('../models/Score');
+const prisma = require('../config/database');
 const { analyzeGoal, suggestGoals } = require('../services/goalEngine');
 
 exports.getGoals = async (req, res, next) => {
   try {
-    const goals = await Goal.find({ userId: req.user._id, status: { $ne: 'cancelled' } }).sort({ priority: 1, createdAt: -1 });
+    const goals = await prisma.goal.findMany({
+      where: { userId: req.user.id, status: { not: 'cancelled' } },
+      include: { milestones: true },
+      orderBy: [{ priority: 'asc' }, { createdAt: 'desc' }]
+    });
     res.json({ success: true, data: { goals } });
   } catch (e) { next(e); }
 };
 
 exports.createGoal = async (req, res, next) => {
   try {
-    const goal = await Goal.create({ userId: req.user._id, ...req.body });
+    const { milestones, ...goalData } = req.body;
+    const goal = await prisma.goal.create({
+      data: {
+        userId: req.user.id,
+        ...goalData,
+        milestones: milestones?.length
+          ? { create: milestones.map(m => ({ title: m.title, targetAmount: m.targetAmount })) }
+          : undefined
+      },
+      include: { milestones: true }
+    });
     res.status(201).json({ success: true, message: 'Goal created!', data: { goal } });
   } catch (e) { next(e); }
 };
 
 exports.updateGoal = async (req, res, next) => {
   try {
-    const goal = await Goal.findOneAndUpdate(
-      { _id: req.params.id, userId: req.user._id },
-      req.body, { new: true, runValidators: true }
-    );
-    if (!goal) return res.status(404).json({ success: false, message: 'Goal not found.' });
+    const existing = await prisma.goal.findFirst({
+      where: { id: parseInt(req.params.id), userId: req.user.id }
+    });
+    if (!existing) return res.status(404).json({ success: false, message: 'Goal not found.' });
+
+    const { milestones, ...updateData } = req.body;
+
+    let goal = await prisma.goal.update({
+      where: { id: parseInt(req.params.id) },
+      data: updateData,
+      include: { milestones: true }
+    });
+
     // Auto-mark achieved
     if (goal.currentAmount >= goal.targetAmount && goal.status === 'active') {
-      goal.status = 'achieved'; goal.achievedAt = new Date();
-      await goal.save();
+      goal = await prisma.goal.update({
+        where: { id: goal.id },
+        data: { status: 'achieved', achievedAt: new Date() },
+        include: { milestones: true }
+      });
     }
+
     res.json({ success: true, data: { goal } });
   } catch (e) { next(e); }
 };
 
 exports.deleteGoal = async (req, res, next) => {
   try {
-    // Fix: check the goal exists and belongs to this user before cancelling
-    const goal = await Goal.findOneAndUpdate(
-      { _id: req.params.id, userId: req.user._id },
-      { status: 'cancelled' },
-      { new: true }
-    );
-    if (!goal) return res.status(404).json({ success: false, message: 'Goal not found.' });
+    const existing = await prisma.goal.findFirst({
+      where: { id: parseInt(req.params.id), userId: req.user.id }
+    });
+    if (!existing) return res.status(404).json({ success: false, message: 'Goal not found.' });
+
+    const goal = await prisma.goal.update({
+      where: { id: parseInt(req.params.id) },
+      data: { status: 'cancelled' }
+    });
     res.json({ success: true, message: 'Goal cancelled.' });
   } catch (e) { next(e); }
 };
 
 exports.analyzeGoal = async (req, res, next) => {
   try {
-    const goal = await Goal.findOne({ _id: req.params.id, userId: req.user._id });
+    const goal = await prisma.goal.findFirst({
+      where: { id: parseInt(req.params.id), userId: req.user.id },
+      include: { milestones: true }
+    });
     if (!goal) return res.status(404).json({ success: false, message: 'Goal not found.' });
-    const score = await Score.findOne({ userId: req.user._id }).sort({ createdAt: -1 });
+
+    const score = await prisma.score.findFirst({
+      where: { userId: req.user.id },
+      orderBy: { createdAt: 'desc' }
+    });
     if (!score) return res.status(400).json({ success: false, message: 'Complete your profile first.' });
-    const analysis = analyzeGoal(goal, score.metrics.monthlyIncome, score.metrics.savingsRate);
+
+    const analysis = analyzeGoal(goal, score.monthlyIncome, score.savingsRate);
     res.json({ success: true, data: { analysis } });
   } catch (e) { next(e); }
 };
 
 exports.getSuggestions = async (req, res, next) => {
   try {
-    const score = await Score.findOne({ userId: req.user._id }).sort({ createdAt: -1 });
-    const goals = await Goal.find({ userId: req.user._id, status: 'active' });
+    const score = await prisma.score.findFirst({
+      where: { userId: req.user.id },
+      orderBy: { createdAt: 'desc' }
+    });
+    const goals = await prisma.goal.findMany({
+      where: { userId: req.user.id, status: 'active' }
+    });
     if (!score) return res.json({ success: true, data: { suggestions: [] } });
-    const suggestions = suggestGoals(score.metrics, goals);
+
+    const metrics = {
+      monthlyIncome: score.monthlyIncome,
+      totalMonthlyEMI: score.totalMonthlyEMI,
+      totalMonthlyExpenses: score.totalMonthlyExpenses,
+      savingsRate: score.savingsRate,
+      dtiRatio: score.dtiRatio,
+      creditUtilization: score.creditUtilization,
+      emergencyFundMonths: score.emergencyFundMonths
+    };
+    const suggestions = suggestGoals(metrics, goals);
     res.json({ success: true, data: { suggestions } });
   } catch (e) { next(e); }
 };

@@ -4,11 +4,10 @@ const helmet = require('helmet');
 const cors = require('cors');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
-const connectDB = require('./config/database');
+require('./config/database'); // just require, no connectDB call
 const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
-connectDB();
 
 app.use(helmet());
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 200, message: { success: false, message: 'Too many requests.' } }));

@@ -60,16 +60,22 @@ const profileSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(fetchProfile.pending, (s) => { s.loading = true; s.error = null; })
+      // ✅ On success: set profile normally
       .addCase(fetchProfile.fulfilled, (s, a) => { s.loading = false; s.profile = a.payload.profile; s.loans = a.payload.loans; })
-      .addCase(fetchProfile.rejected, (s, a) => { s.loading = false; s.error = a.payload; })
-      .addCase(createProfile.pending, (s) => { s.loading = true; })
+      // ✅ KEY FIX: On failure (404 = no profile yet): reset profile to null so isUpdate = false
+      .addCase(fetchProfile.rejected, (s, a) => { s.loading = false; s.profile = null; s.loans = []; s.error = null; })
+
+      .addCase(createProfile.pending, (s) => { s.loading = true; s.error = null; })
       .addCase(createProfile.fulfilled, (s, a) => { s.loading = false; s.profile = a.payload.profile; })
       .addCase(createProfile.rejected, (s, a) => { s.loading = false; s.error = a.payload; })
-      .addCase(updateProfile.pending, (s) => { s.loading = true; })
+
+      .addCase(updateProfile.pending, (s) => { s.loading = true; s.error = null; })
       .addCase(updateProfile.fulfilled, (s, a) => { s.loading = false; s.profile = a.payload.profile; })
       .addCase(updateProfile.rejected, (s, a) => { s.loading = false; s.error = a.payload; })
+
       .addCase(addLoan.fulfilled, (s, a) => { s.loans.push(a.payload); })
-      .addCase(deleteLoan.fulfilled, (s, a) => { s.loans = s.loans.filter(l => l._id !== a.payload); });
+      // ✅ Fix loan delete to use id (Prisma uses numeric id, not _id)
+      .addCase(deleteLoan.fulfilled, (s, a) => { s.loans = s.loans.filter(l => l.id !== a.payload && l._id !== a.payload); });
   }
 });
 
