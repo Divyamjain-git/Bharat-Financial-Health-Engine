@@ -41,11 +41,33 @@ export default function DashboardPage() {
   const sc = score?.totalScore ?? 0;
   const grade = score?.grade ?? 'N/A';
   const scoreColor = getScoreColor(grade);
-  const metrics = score?.metrics ?? {};
-  const components = score?.components ?? {};
-  const expenses = profile?.expenses ?? {};
+  // Bug fix: score from Prisma has fields top-level (monthlyIncome, savingsRate…),
+  // NOT nested under .metrics. score.components likewise does not exist;
+  // component scores (dtiScore, savingsScore…) are also top-level.
+  const metrics = score ? {
+    monthlyIncome:        score.monthlyIncome        || 0,
+    totalMonthlyEMI:      score.totalMonthlyEMI      || 0,
+    totalMonthlyExpenses: score.totalMonthlyExpenses || 0,
+    savingsRate:          score.savingsRate          || 0,
+    dtiRatio:             score.dtiRatio             || 0,
+    creditUtilization:    score.creditUtilization    || 0,
+    emergencyFundMonths:  score.emergencyFundMonths  || 0,
+  } : {};
+  const components = score ? {
+    dtiScore:      score.dtiScore      ?? 0,
+    savingsScore:  score.savingsScore  ?? 0,
+    emergencyScore:score.emergencyScore?? 0,
+    creditScore:   score.creditScore   ?? 0,
+    expenseScore:  score.expenseScore  ?? 0,
+  } : {};
+  // Bug fix: profile from Prisma is flat — expense fields are top-level,
+  // NOT nested under profile.expenses
+  const expenses = profile || {};
   const expLabels = { houseRent:'Rent', groceries:'Groceries', electricityBill:'Electricity', gasBill:'Gas', waterBill:'Water', internetMobile:'Internet', medicalExpenses:'Medical', vehicleFuel:'Fuel', schoolFees:'Education', otherExpenses:'Other' };
-  const expenseData = Object.entries(expenses).filter(([,v])=>v>0).map(([k,v])=>({ name: expLabels[k]||k, value: v })).sort((a,b)=>b.value-a.value);
+  const expenseData = Object.entries(expLabels)
+    .map(([k, name]) => ({ name, value: expenses[k] || 0 }))
+    .filter(item => item.value > 0)
+    .sort((a,b) => b.value - a.value);
   const trendData = history.slice(-15).map(s => ({ date: new Date(s.createdAt).toLocaleDateString('en-IN',{month:'short',day:'numeric'}), score: s.totalScore }));
   const activeGoals = goals.filter(g=>g.status==='active').slice(0,3);
   const hour = new Date().getHours();
@@ -179,7 +201,7 @@ export default function DashboardPage() {
             {/* Expense Pie */}
             <motion.div initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} transition={{delay:0.18}} className="card">
               <div style={{ fontFamily:'var(--font-display)', fontSize:14, fontWeight:800, marginBottom:4 }}>Expense Breakdown</div>
-              <div style={{ fontSize:12, color:'var(--text-2)', marginBottom:10 }}>{formatINR(Object.values(expenses).reduce((s,v)=>s+(v||0),0))}/mo</div>
+              <div style={{ fontSize:12, color:'var(--text-2)', marginBottom:10 }}>{formatINR(Object.keys(expLabels).reduce((s,k)=>s+(expenses[k]||0),0))}/mo</div>
               {expenseData.length>0?(
                 <>
                   <ResponsiveContainer width="100%" height={140}>
@@ -214,7 +236,7 @@ export default function DashboardPage() {
                   {activeGoals.map(goal=>{
                     const pct=Math.min(100,Math.round((goal.currentAmount/goal.targetAmount)*100));
                     return (
-                      <div key={goal._id} style={{ background:'var(--bg-elevated)', borderRadius:9, padding:'10px 12px' }}>
+                      <div key={goal.id} style={{ background:'var(--bg-elevated)', borderRadius:9, padding:'10px 12px' }}>
                         <div style={{ display:'flex', justifyContent:'space-between', marginBottom:5 }}>
                           <span style={{ fontSize:13, fontWeight:700 }}>{goal.icon} {goal.title}</span>
                           <span style={{ fontSize:12, fontWeight:800, color:'var(--gold)' }}>{pct}%</span>

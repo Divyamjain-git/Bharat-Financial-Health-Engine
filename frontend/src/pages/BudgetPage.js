@@ -163,17 +163,31 @@
 //   );
 // }
 import React, { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { motion } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { ProgressBar, PageHeader, StatCard, InfoBox } from '../components/ui';
 import { formatINR } from '../utils/currency';
+import { fetchProfile } from '../store/slices/profileSlice';
+import { fetchLatestScore } from '../store/slices/scoreSlice';
 
 export default function BudgetPage() {
+  const dispatch = useDispatch();
   const { latest: score } = useSelector(s => s.score);
   const { profile } = useSelector(s => s.profile);
-  const metrics = score?.metrics ?? {};
-  const income = metrics.monthlyIncome || 0;
+
+  // Fetch data on mount so page works even when navigated to directly
+  useEffect(() => {
+    dispatch(fetchProfile());
+    dispatch(fetchLatestScore());
+  }, [dispatch]);
+  // Bug fix: score from Prisma has fields top-level, NOT nested under .metrics
+  const income = score
+    ? (score.monthlyIncome || score.metrics?.monthlyIncome || 0)
+    : 0;
+  const totalMonthlyEMI = score
+    ? (score.totalMonthlyEMI || score.metrics?.totalMonthlyEMI || 0)
+    : 0;
 
   const [percents, setPercents] = useState({ needs: 50, wants: 30, savings: 20 });
 
@@ -181,8 +195,10 @@ export default function BudgetPage() {
   const wants   = Math.round(income * percents.wants   / 100);
   const savings = Math.round(income * percents.savings / 100);
 
-  const expenses    = profile?.expenses ?? {};
-  const actualNeeds   = (expenses.houseRent||0) + (expenses.groceries||0) + (expenses.electricityBill||0) + (expenses.gasBill||0) + (expenses.waterBill||0) + (expenses.internetMobile||0) + (expenses.medicalExpenses||0) + (metrics.totalMonthlyEMI||0);
+  // Bug fix: profile from Prisma is flat — expense fields are top-level,
+  // NOT nested under profile.expenses
+  const expenses = profile || {};
+  const actualNeeds   = (expenses.houseRent||0) + (expenses.groceries||0) + (expenses.electricityBill||0) + (expenses.gasBill||0) + (expenses.waterBill||0) + (expenses.internetMobile||0) + (expenses.medicalExpenses||0) + totalMonthlyEMI;
   const actualWants   = (expenses.vehicleFuel||0) + (expenses.otherExpenses||0);
   const actualSavings = income - actualNeeds - actualWants;
 
@@ -224,7 +240,7 @@ export default function BudgetPage() {
     { label: 'Water',           key: 'waterBill'       },
     { label: 'Internet & Mobile', key: 'internetMobile' },
     { label: 'Medical',         key: 'medicalExpenses' },
-    { label: 'Loan EMIs',       value: metrics.totalMonthlyEMI||0 }
+    { label: 'Loan EMIs',       value: totalMonthlyEMI }
   ];
 
   return (

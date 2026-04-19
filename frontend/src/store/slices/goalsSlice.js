@@ -35,8 +35,8 @@ const goalsSlice = createSlice({
      .addCase(fetchGoals.fulfilled, (s, a) => { s.loading = false; s.goals = a.payload; })
      .addCase(fetchGoals.rejected, (s, a) => { s.loading = false; s.error = a.payload; })
      .addCase(createGoal.fulfilled, (s, a) => { s.goals.unshift(a.payload); })
-     .addCase(updateGoal.fulfilled, (s, a) => { const i = s.goals.findIndex(g => g._id === a.payload._id); if (i !== -1) s.goals[i] = a.payload; })
-     .addCase(deleteGoal.fulfilled, (s, a) => { s.goals = s.goals.filter(g => g._id !== a.payload); })
+     .addCase(updateGoal.fulfilled, (s, a) => { const i = s.goals.findIndex(g => g.id === a.payload.id); if (i !== -1) s.goals[i] = a.payload; })
+     .addCase(deleteGoal.fulfilled, (s, a) => { s.goals = s.goals.filter(g => g.id !== a.payload); })
      .addCase(fetchGoalSuggestions.fulfilled, (s, a) => { s.suggestions = a.payload; });
   }
 });

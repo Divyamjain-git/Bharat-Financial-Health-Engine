@@ -258,13 +258,13 @@ export default function NetWorthPage() {
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:12 }}>
         {(tab==='assets'?assets:liabilities).length===0?<EmptyState icon={tab==='assets'?'📈':'📉'} title={`No ${tab} added`} subtitle={`Track your ${tab} to compute net worth`} action={<button className="btn btn-primary btn-sm" onClick={()=>setShowForm(true)}>Add {tab==='assets'?'Asset':'Liability'}</button>}/>:
         (tab==='assets'?assets:liabilities).map((item,i)=>(
-          <motion.div key={item._id} initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} transition={{delay:i*0.04}} className="card">
+          <motion.div key={item.id} initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} transition={{delay:i*0.04}} className="card">
             <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:8 }}>
               <div>
                 <div style={{ fontWeight:700, fontSize:14, marginBottom:3 }}>{item.name}</div>
                 <span style={{ fontSize:11, fontWeight:600, color:tab==='assets'?'var(--teal)':'var(--red)', background:tab==='assets'?'var(--teal-dim)':'var(--red-dim)', padding:'2px 8px', borderRadius:6 }}>{fmtCat(item.category)}</span>
               </div>
-              <button onClick={()=>{ if(tab==='assets')dispatch(deleteAsset(item._id)); else dispatch(deleteLiability(item._id)); }} style={{ background:'none',border:'none',color:'var(--text-3)',cursor:'pointer',fontSize:16 }}>×</button>
+              <button onClick={()=>{ if(tab==='assets')dispatch(deleteAsset(item.id)); else dispatch(deleteLiability(item.id)); }} style={{ background:'none',border:'none',color:'var(--text-3)',cursor:'pointer',fontSize:16 }}>×</button>
             </div>
             <div style={{ fontFamily:'var(--font-display)', fontSize:22, fontWeight:900, color:tab==='assets'?'var(--teal)':'var(--red)', marginBottom:4 }}>
               {formatINR(tab==='assets'?item.currentValue:item.outstandingAmount)}

@@ -1,251 +1,203 @@
 /**
  * Gemini AI Service — Elite Personalised Financial Recommendations
- * Uses gemini-2.0-flash with a deeply structured prompt for maximum quality.
+ * Deep financial analysis with India-specific advice and precise calculations.
  */
 
 const GEMINI_API_URL =
   'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+const fmt  = (n) => n != null ? `₹${Number(n).toLocaleString('en-IN')}` : 'N/A';
+const pct  = (n) => n != null ? `${Number(n).toFixed(1)}%` : 'N/A';
+const slab = (s) => s >= 80 ? '✅ Excellent' : s >= 65 ? '🟡 Good' : s >= 50 ? '🟠 Fair' : s >= 35 ? '🔴 Weak' : '🚨 Critical';
 
-const fmt = (n) => n != null ? `₹${Number(n).toLocaleString('en-IN')}` : 'N/A';
-const pct = (n) => n != null ? `${Number(n).toFixed(1)}%` : 'N/A';
-
-function scoreLabel(s) {
-  if (s >= 80) return 'Excellent';
-  if (s >= 65) return 'Good';
-  if (s >= 50) return 'Fair';
-  if (s >= 35) return 'Weak';
-  return 'Critical';
-}
-
-function gradeContext(score) {
-  if (score >= 80) return 'This user is financially healthy. Focus on wealth optimization and advanced strategies.';
-  if (score >= 65) return 'This user is doing well but has clear gaps. Focus on closing those gaps.';
-  if (score >= 50) return 'This user is in an average position with significant room for improvement.';
-  if (score >= 35) return 'This user is financially stressed. Focus on stabilization and damage control.';
-  return 'This user is in a financially critical state. Prioritize immediate rescue actions.';
-}
-
-function buildExpenseAnalysis(expenses = {}, income) {
-  const entries = Object.entries(expenses).filter(([, v]) => v > 0);
-  if (!entries.length) return '  No expense data provided.';
-
+function buildExpenseBreakdown(expenses = {}, income) {
+  const entries = Object.entries(expenses).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
+  if (!entries.length) return '  (no expense data)';
   const total = entries.reduce((s, [, v]) => s + v, 0);
-  const lines = entries
-    .sort((a, b) => b[1] - a[1])
-    .map(([k, v]) => {
-      const share = income > 0 ? ((v / income) * 100).toFixed(1) : '?';
-      const label = k.replace(/([A-Z])/g, ' $1').toLowerCase();
-      return `  - ${label}: ${fmt(v)}/mo (${share}% of income)`;
-    });
-  lines.push(`  TOTAL: ${fmt(total)}/mo (${income > 0 ? ((total / income) * 100).toFixed(1) : '?'}% of income)`);
+  const lines = entries.map(([k, v]) => {
+    const label = k.replace(/([A-Z])/g, ' $1').replace(/^./, c => c.toUpperCase());
+    const share = income > 0 ? ((v / income) * 100).toFixed(1) : '?';
+    return `    • ${label}: ${fmt(v)}/mo  [${share}% of income]`;
+  });
+  lines.push(`    ─ TOTAL: ${fmt(total)}/mo  [${income > 0 ? ((total / income) * 100).toFixed(1) : '?'}% of income]`);
   return lines.join('\n');
 }
 
-function buildLoanAnalysis(loans = [], income) {
+function buildLoanBreakdown(loans = [], income) {
   if (!loans.length) return '  No active loans.';
   const totalEMI = loans.reduce((s, l) => s + (l.monthlyEMI || 0), 0);
   const lines = loans.map(l => {
-    const remaining = l.remainingMonths ? `${l.remainingMonths} months left` : 'tenure unknown';
-    const outstanding = l.outstandingBalance ? fmt(l.outstandingBalance) : 'unknown balance';
-    return `  - ${l.loanType?.toUpperCase()} loan @ ${l.lenderName || 'Bank'}: EMI ${fmt(l.monthlyEMI)}/mo @ ${l.interestRate}% p.a. | ${outstanding} outstanding | ${remaining}`;
+    const months = l.remainingMonths ? `${l.remainingMonths}mo remaining` : 'tenure unknown';
+    const totalInterest = l.remainingMonths
+      ? Math.round(l.monthlyEMI * l.remainingMonths - (l.outstandingBalance || 0))
+      : null;
+    return [
+      `    • ${(l.loanType || 'loan').toUpperCase()} @ ${l.lenderName || 'Bank'}`,
+      `      EMI: ${fmt(l.monthlyEMI)}/mo | Rate: ${l.interestRate}% p.a. | Outstanding: ${fmt(l.outstandingBalance)} | ${months}`,
+      totalInterest != null && totalInterest > 0 ? `      Total interest still to pay: ${fmt(totalInterest)}` : ''
+    ].filter(Boolean).join('\n');
   });
-  lines.push(`  TOTAL EMI BURDEN: ${fmt(totalEMI)}/mo (${income > 0 ? ((totalEMI / income) * 100).toFixed(1) : '?'}% of income)`);
+  lines.push(`    ─ TOTAL EMI: ${fmt(totalEMI)}/mo  [${income > 0 ? ((totalEMI / income) * 100).toFixed(1) : '?'}% of income]`);
   return lines.join('\n');
 }
 
-function buildGoalAnalysis(goals = []) {
-  const active = goals.filter(g => g.status === 'active');
-  if (!active.length) return '  No active financial goals set.';
+function buildCreditCards(cards = []) {
+  if (!cards.length) return '  No credit cards.';
+  const totalLimit = cards.reduce((s, c) => s + (c.creditLimit || 0), 0);
+  const totalBal   = cards.reduce((s, c) => s + (c.outstandingBalance || 0), 0);
+  const util = totalLimit > 0 ? ((totalBal / totalLimit) * 100).toFixed(1) : 0;
+  const lines = cards.map(c => {
+    const cardUtil = c.creditLimit > 0 ? ((c.outstandingBalance / c.creditLimit) * 100).toFixed(1) : 0;
+    const annualInterest = c.outstandingBalance > 0 ? Math.round(c.outstandingBalance * 0.39) : 0;
+    return `    • ${c.cardName}: ${fmt(c.outstandingBalance)} used / ${fmt(c.creditLimit)} limit (${cardUtil}% utilized)${annualInterest > 0 ? ` → costs ~${fmt(annualInterest)}/yr in interest if unpaid` : ''}`;
+  });
+  lines.push(`    ─ OVERALL UTILIZATION: ${util}%`);
+  return lines.join('\n');
+}
+
+function buildGoals(goals = []) {
+  const active = (goals || []).filter(g => g.status === 'active');
+  if (!active.length) return '  No active goals.';
   return active.map(g => {
     const progress = g.targetAmount > 0 ? ((g.currentAmount / g.targetAmount) * 100).toFixed(1) : 0;
+    const remaining = (g.targetAmount || 0) - (g.currentAmount || 0);
     const deadline = g.targetDate ? new Date(g.targetDate).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }) : 'No deadline';
-    return `  - "${g.title}" (${g.category}): ${fmt(g.currentAmount)} saved of ${fmt(g.targetAmount)} target | ${progress}% done | Deadline: ${deadline} | Priority: ${g.priority}`;
+    const monthsLeft = g.targetDate ? Math.max(0, Math.round((new Date(g.targetDate) - new Date()) / (1000 * 60 * 60 * 24 * 30))) : null;
+    const reqSIP = monthsLeft > 0 ? Math.round(remaining / monthsLeft) : null;
+    return [
+      `    • "${g.title}" [${g.category}] — ${g.priority} priority`,
+      `      Saved: ${fmt(g.currentAmount)} of ${fmt(g.targetAmount)} (${progress}% done) | Remaining: ${fmt(remaining)}`,
+      `      Deadline: ${deadline}${monthsLeft != null ? ` (${monthsLeft} months away)` : ''}${reqSIP != null ? ` | Needs: ${fmt(reqSIP)}/mo` : ''}`
+    ].join('\n');
   }).join('\n');
 }
 
-function buildNetWorthAnalysis(netWorth) {
-  if (!netWorth) return '  Not provided.';
-  const ratio = netWorth.totalLiabilities > 0
-    ? (netWorth.totalAssets / netWorth.totalLiabilities).toFixed(2)
-    : 'N/A';
-
-  const assetLines = (netWorth.assets || []).map(a =>
-    `    • ${a.name} (${a.category}): ${fmt(a.currentValue)}`
-  ).join('\n') || '    • No assets listed';
-
-  const liabLines = (netWorth.liabilities || []).map(l =>
-    `    • ${l.name} (${l.category}): ${fmt(l.outstandingAmount)} @ ${l.interestRate || 0}%`
-  ).join('\n') || '    • No liabilities listed';
-
-  return `  Total Assets: ${fmt(netWorth.totalAssets)}
-  Total Liabilities: ${fmt(netWorth.totalLiabilities)}
-  Net Worth: ${fmt(netWorth.netWorth)}
-  Asset-to-Liability Ratio: ${ratio}
-  Assets breakdown:
-${assetLines}
-  Liabilities breakdown:
-${liabLines}`;
+function buildNetWorth(nw) {
+  if (!nw) return '  Not provided.';
+  const ratio = nw.totalLiabilities > 0 ? (nw.totalAssets / nw.totalLiabilities).toFixed(2) : '∞';
+  const assetLines = (nw.assets || []).map(a => `      • ${a.name} [${a.category}]: ${fmt(a.currentValue)}`).join('\n') || '      (none listed)';
+  const liabLines  = (nw.liabilities || []).map(l => `      • ${l.name} [${l.category}]: ${fmt(l.outstandingAmount)} @ ${l.interestRate || 0}%`).join('\n') || '      (none listed)';
+  return `    Total Assets: ${fmt(nw.totalAssets)} | Liabilities: ${fmt(nw.totalLiabilities)} | Net Worth: ${fmt(nw.netWorth)} | Ratio: ${ratio}x\n    Assets:\n${assetLines}\n    Liabilities:\n${liabLines}`;
 }
 
-function buildCreditCardAnalysis(creditCards = []) {
-  if (!creditCards.length) return '  No credit cards.';
-  const totalLimit = creditCards.reduce((s, c) => s + (c.creditLimit || 0), 0);
-  const totalBal = creditCards.reduce((s, c) => s + (c.outstandingBalance || 0), 0);
-  const util = totalLimit > 0 ? ((totalBal / totalLimit) * 100).toFixed(1) : 0;
-  const lines = creditCards.map(c => {
-    const cardUtil = c.creditLimit > 0 ? ((c.outstandingBalance / c.creditLimit) * 100).toFixed(1) : 0;
-    return `  - ${c.cardName}: ${fmt(c.outstandingBalance)} used of ${fmt(c.creditLimit)} limit (${cardUtil}% utilized)`;
-  });
-  lines.push(`  OVERALL UTILIZATION: ${util}%`);
-  return lines.join('\n');
-}
-
-// ─── Main Prompt Builder ──────────────────────────────────────────────────────
-
-function buildPrompt({ user, score, profile, goals, netWorth }) {
-  const metrics    = score?.metrics     ?? score ?? {};
-  const components = score?.components  ?? {};
+function buildPrompt({ user, score: sc, profile, goals, netWorth }) {
+  const metrics    = sc?.metrics     ?? sc ?? {};
+  const components = sc?.components  ?? {};
   const expenses   = profile?.expenses  ?? {};
   const loans      = profile?.loans     ?? [];
   const cards      = profile?.creditCards ?? [];
-  const income     = metrics.monthlyIncome || 0;
 
-  // Flatten score fields if stored flat (Prisma) vs nested (Mongoose)
-  const dtiScore        = components.dtiScore        ?? score?.dtiScore        ?? 0;
-  const savingsScore    = components.savingsScore    ?? score?.savingsScore    ?? 0;
-  const emergencyScore  = components.emergencyScore  ?? score?.emergencyScore  ?? 0;
-  const creditScore     = components.creditScore     ?? score?.creditScore     ?? 0;
-  const expenseScore    = components.expenseScore    ?? score?.expenseScore    ?? 0;
+  const dtiScore       = components.dtiScore       ?? sc?.dtiScore       ?? 0;
+  const savingsScore   = components.savingsScore   ?? sc?.savingsScore   ?? 0;
+  const emergencyScore = components.emergencyScore ?? sc?.emergencyScore ?? 0;
+  const creditScore    = components.creditScore    ?? sc?.creditScore    ?? 0;
+  const expenseScore   = components.expenseScore   ?? sc?.expenseScore   ?? 0;
 
-  const monthlyIncome       = income;
-  const totalMonthlyEMI     = metrics.totalMonthlyEMI     ?? 0;
-  const totalMonthlyExp     = metrics.totalMonthlyExpenses ?? 0;
-  const savingsRate         = metrics.savingsRate          ?? 0;
-  const dtiRatio            = metrics.dtiRatio             ?? 0;
-  const creditUtil          = metrics.creditUtilization    ?? 0;
-  const emergencyMonths     = metrics.emergencyFundMonths  ?? 0;
-  const emergencyFundAmount = profile?.emergencyFundAmount ?? 0;
-  const monthlySavings      = profile?.monthlySavings      ?? 0;
-  const totalScore          = score?.totalScore            ?? 0;
-  const grade               = score?.grade                 ?? 'N/A';
+  const income       = metrics.monthlyIncome        ?? 0;
+  const totalEMI     = metrics.totalMonthlyEMI      ?? 0;
+  const totalExp     = metrics.totalMonthlyExpenses ?? 0;
+  const savingsRate  = metrics.savingsRate           ?? 0;
+  const dtiRatio     = metrics.dtiRatio              ?? 0;
+  const creditUtil   = metrics.creditUtilization     ?? 0;
+  const emergencyMos = metrics.emergencyFundMonths   ?? 0;
+  const totalScore   = sc?.totalScore                ?? 0;
+  const grade        = sc?.grade                     ?? 'N/A';
+  const disposable   = income - totalEMI - totalExp;
+  const annualIncome = income * 12;
+  const emergencyAmt = profile?.emergencyFundAmount  ?? 0;
 
-  const disposableIncome = monthlyIncome - totalMonthlyEMI - totalMonthlyExp;
-  const annualIncome = monthlyIncome * 12;
-  const tax80CLimitUsed = Math.min(annualIncome * 0.1, 150000); // rough estimate
+  const weakest = [
+    { name: 'Debt-to-Income',  s: dtiScore },
+    { name: 'Savings Rate',    s: savingsScore },
+    { name: 'Emergency Fund',  s: emergencyScore },
+    { name: 'Credit Health',   s: creditScore },
+    { name: 'Expense Control', s: expenseScore },
+  ].sort((a, b) => a.s - b.s).slice(0, 3).map(c => `${c.name} (${c.s}/100)`).join(', ');
 
-  return `You are India's top certified financial planner (CFP) with 20 years of experience advising Indian salaried and self-employed professionals. You have deep expertise in Indian tax laws, mutual funds, SEBI regulations, and behavioral finance.
+  return `You are India's top-rated SEBI-registered financial planner with 25 years of experience advising Indian salaried and self-employed professionals. You have deep expertise in Indian mutual funds, CIBIL scores, tax laws (80C/80CCD/80D), and behavioral finance.
 
-TASK: Analyse this person's complete financial data and generate exactly 7 highly personalized, deeply actionable recommendations. Each recommendation must reference their ACTUAL numbers — not generic advice.
+TASK: Analyse this person's COMPLETE financial snapshot and generate exactly 8 hyper-personalized recommendations. Every recommendation MUST cite their actual rupee figures — zero generic advice allowed.
 
-═══════════════════════════════════════════════
-COMPLETE FINANCIAL PROFILE
-═══════════════════════════════════════════════
+══════════════════════════════════════
+FINANCIAL SNAPSHOT — ${user?.name ?? 'User'} (${user?.role === 'business' ? 'Self-employed' : 'Salaried'})
+══════════════════════════════════════
 
-PERSONAL
-  Name: ${user?.name ?? 'User'}
-  Employment: ${user?.role === 'business' ? 'Self-employed / Business owner' : 'Salaried professional'}
+HEALTH SCORE: ${totalScore}/100 | Grade: ${grade}
+TOP 3 WEAKEST AREAS (address first): ${weakest}
 
-FINANCIAL HEALTH SCORE: ${totalScore}/100 (Grade: ${grade})
-${gradeContext(totalScore)}
+SCORES:
+  Debt-to-Income:  ${dtiScore}/100 ${slab(dtiScore)}
+  Savings Rate:    ${savingsScore}/100 ${slab(savingsScore)}
+  Emergency Fund:  ${emergencyScore}/100 ${slab(emergencyScore)}
+  Credit Health:   ${creditScore}/100 ${slab(creditScore)}
+  Expense Control: ${expenseScore}/100 ${slab(expenseScore)}
 
-COMPONENT SCORES (each out of 100):
-  Debt-to-Income:   ${dtiScore}/100  → ${scoreLabel(dtiScore)}
-  Savings Rate:     ${savingsScore}/100  → ${scoreLabel(savingsScore)}
-  Emergency Fund:   ${emergencyScore}/100  → ${scoreLabel(emergencyScore)}
-  Credit Health:    ${creditScore}/100  → ${scoreLabel(creditScore)}
-  Expense Control:  ${expenseScore}/100  → ${scoreLabel(expenseScore)}
+CASHFLOW:
+  Monthly income:    ${fmt(income)} (Annual: ${fmt(annualIncome)})
+  Monthly EMIs:      ${fmt(totalEMI)} (${pct(dtiRatio)} DTI)
+  Monthly expenses:  ${fmt(totalExp)} (${income > 0 ? ((totalExp/income)*100).toFixed(1) : '?'}% of income)
+  Disposable:        ${fmt(disposable)} after all fixed costs
+  Emergency fund:    ${fmt(emergencyAmt)} = ${emergencyMos.toFixed(1)} months coverage
+  Credit util:       ${pct(creditUtil)}
 
-KEY FINANCIAL METRICS:
-  Monthly income:         ${fmt(monthlyIncome)}
-  Annual income:          ${fmt(annualIncome)}
-  Monthly savings:        ${fmt(monthlySavings)} (${pct(savingsRate)} savings rate)
-  Monthly EMI total:      ${fmt(totalMonthlyEMI)} (${pct(dtiRatio)} of income)
-  Monthly expenses:       ${fmt(totalMonthlyExp)}
-  Disposable income:      ${fmt(disposableIncome)} (after EMI + expenses)
-  Emergency fund:         ${fmt(emergencyFundAmount)} (covers ${emergencyMonths.toFixed(1)} months)
-  Credit utilization:     ${pct(creditUtil)}
+EXPENSES:
+${buildExpenseBreakdown(expenses, income)}
 
-MONTHLY EXPENSE BREAKDOWN:
-${buildExpenseAnalysis(expenses, monthlyIncome)}
-
-LOANS & EMI OBLIGATIONS:
-${buildLoanAnalysis(loans, monthlyIncome)}
+LOANS:
+${buildLoanBreakdown(loans, income)}
 
 CREDIT CARDS:
-${buildCreditCardAnalysis(cards)}
+${buildCreditCards(cards)}
 
-FINANCIAL GOALS:
-${buildGoalAnalysis(goals)}
+GOALS:
+${buildGoals(goals)}
 
 NET WORTH:
-${buildNetWorthAnalysis(netWorth)}
+${buildNetWorth(netWorth)}
 
-═══════════════════════════════════════════════
-RECOMMENDATION INSTRUCTIONS
-═══════════════════════════════════════════════
+══════════════════════════════════════
+RULES FOR EACH RECOMMENDATION:
+══════════════════════════════════════
+1. Quote their actual ₹ amounts (not generic placeholders).
+2. Show real math in the "calculation" field.
+3. First 3 recs = their 3 weakest areas above.
+4. Use real Indian products: PPF, ELSS, NPS Tier-1, Sovereign Gold Bonds, Liquid Funds, FD laddering, Section 80C/80CCD/80D.
+5. actionStep = doable within 7 days, name specific app/bank/scheme.
+6. impact = single line with concrete ₹ or % benefit.
+7. calculation = show the actual math (SIP growth, interest saved, tax saved, etc.)
+8. whyPeopleAvoid = brief psychological barrier + one-line trick to overcome it.
 
-Generate exactly 7 recommendations following these strict rules:
+PRIORITY:
+  "critical" → score < 35 OR dtiRatio > 60% OR emergencyMos < 1 OR creditUtil > 75%
+  "high"     → score < 50 OR dtiRatio > 40% OR emergencyMos < 3 OR creditUtil > 50%
+  "medium"   → score 50–74
+  "low"      → score 75+ or optimization
 
-QUALITY RULES:
-1. HYPER-SPECIFIC: Every recommendation MUST mention their actual rupee amounts, percentages, or ratios from the data above. No generic advice like "save more money."
-2. IMMEDIATELY ACTIONABLE: Include the exact first step they can take TODAY or THIS WEEK. Name specific apps, banks, schemes, or platforms where relevant.
-3. INDIA-SPECIFIC: Use relevant Indian instruments — PPF, ELSS, NPS (80CCD), RBI Bonds, Sovereign Gold Bonds, Liquid Funds, FD laddering, SCSS, etc.
-4. NUMBERED IMPACT: Where possible, quantify the impact — "This will save you ₹X/month" or "This could grow to ₹X in Y years."
-5. BEHAVIORAL: Address the psychological/behavioral aspect — why people avoid this and how to overcome it.
-6. PRIORITIZED: First 3 must address the WEAKEST score components. Last 2 can be optimization/wealth-building.
-7. CONCISE BUT RICH: Title max 10 words. Description 2-3 sentences max. Action step 1-2 sentences.
-
-PRIORITY ASSIGNMENT RULES:
-- "high": Score component < 50 OR dtiRatio > 50% OR emergencyMonths < 3 OR creditUtil > 50%
-- "medium": Score component 50-74 OR metric needs improvement
-- "low": Score component 75+ OR optimization/growth opportunity
-
-CATEGORY OPTIONS: "savings" | "debt" | "emergency" | "credit" | "investment" | "expense" | "tax" | "insurance"
-
-RESPOND WITH ONLY A VALID JSON ARRAY — no markdown, no explanation, no backticks:
+OUTPUT: ONLY a raw JSON array, no markdown, no backticks, no explanation:
 [
   {
-    "title": "Short punchy title max 10 words",
-    "description": "2-3 sentences with specific numbers from their profile. Mention the actual impact.",
-    "actionStep": "Exact first step to take today/this week. Name specific platform or scheme.",
-    "priority": "high" | "medium" | "low",
-    "category": "savings" | "debt" | "emergency" | "credit" | "investment" | "expense" | "tax" | "insurance",
-    "impact": "One line quantifying the benefit e.g. 'Could free up ₹X/month' or 'Save ₹X in taxes annually'"
+    "title": "Max 10-word punchy title",
+    "description": "2–3 sentences with their actual numbers and why it matters.",
+    "actionStep": "Exact step doable in 7 days. Name real platform/bank/scheme + amount.",
+    "calculation": "Show the actual math. E.g: ₹5,000/mo SIP × 12 = ₹60,000/yr | At 12% CAGR for 10 years = ₹11,61,695",
+    "impact": "Single line quantifying the benefit. E.g: Save ₹46,800 in taxes this year",
+    "whyPeopleAvoid": "One sentence on the barrier + trick to start anyway.",
+    "priority": "critical | high | medium | low",
+    "category": "debt | savings | emergency | credit | investment | expense | tax | insurance | goal"
   }
 ]`;
 }
 
-// ─── API Call ─────────────────────────────────────────────────────────────────
-
 export async function fetchGeminiRecommendations(financialContext) {
   const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
-
-  if (!apiKey) {
-    console.warn('[Gemini] REACT_APP_GEMINI_API_KEY not set — skipping AI recommendations.');
-    return [];
-  }
-
-  const prompt = buildPrompt(financialContext);
+  if (!apiKey) { console.warn('[Gemini] API key not set.'); return []; }
 
   const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      contents: [
-        {
-          role: 'user',
-          parts: [{ text: prompt }]
-        }
-      ],
-      generationConfig: {
-        temperature: 0.3,         // Lower = more precise, factual, consistent
-        maxOutputTokens: 2048,    // Increased for richer descriptions
-        topP: 0.85,
-        topK: 40,
-        responseMimeType: 'application/json', // Force JSON output
-      },
+      contents: [{ role: 'user', parts: [{ text: buildPrompt(financialContext) }] }],
+      generationConfig: { temperature: 0.25, maxOutputTokens: 3500, topP: 0.9, topK: 40 },
       safetySettings: [
         { category: 'HARM_CATEGORY_HARASSMENT',        threshold: 'BLOCK_NONE' },
         { category: 'HARM_CATEGORY_HATE_SPEECH',       threshold: 'BLOCK_NONE' },
@@ -255,44 +207,28 @@ export async function fetchGeminiRecommendations(financialContext) {
     }),
   });
 
-  if (!response.ok) {
-    const err = await response.text();
-    throw new Error(`Gemini API error ${response.status}: ${err}`);
-  }
+  if (!response.ok) throw new Error(`Gemini ${response.status}: ${await response.text()}`);
 
   const data = await response.json();
   const raw  = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
-
-  // Strip any accidental markdown fences
   const cleaned = raw.replace(/```json\n?|```\n?/g, '').trim();
 
-  let recommendations;
-  try {
-    recommendations = JSON.parse(cleaned);
-  } catch (e) {
-    // Try extracting JSON array if surrounded by extra text
-    const match = cleaned.match(/\[[\s\S]*\]/);
-    if (match) {
-      recommendations = JSON.parse(match[0]);
-    } else {
-      console.error('[Gemini] Failed to parse response:', cleaned);
-      return [];
-    }
-  }
+  let recs;
+  try { recs = JSON.parse(cleaned); }
+  catch { const m = cleaned.match(/\[[\s\S]*\]/); recs = m ? JSON.parse(m[0]) : []; }
 
-  if (!Array.isArray(recommendations)) return [];
+  if (!Array.isArray(recs)) return [];
 
-  return recommendations.map((rec, i) => ({
-    id:          `gemini-${i}-${Date.now()}`,
-    _id:         `gemini-${i}-${Date.now()}`,
-    title:       rec.title       ?? 'Recommendation',
+  return recs.map((rec, i) => ({
+    id: `gemini-${i}-${Date.now()}`, _id: `gemini-${i}-${Date.now()}`,
+    title: rec.title ?? 'Recommendation',
     description: rec.description ?? '',
-    actionStep:  rec.actionStep  ?? rec.action ?? '',
-    impact:      rec.impact      ?? '',
-    priority:    rec.priority    ?? 'medium',
-    category:    rec.category    ?? 'savings',
-    source:      'gemini',
-    isRead:      false,
-    isDismissed: false,
+    actionStep: rec.actionStep ?? '',
+    calculation: rec.calculation ?? '',
+    impact: rec.impact ?? '',
+    whyPeopleAvoid: rec.whyPeopleAvoid ?? '',
+    priority: rec.priority ?? 'medium',
+    category: rec.category ?? 'savings',
+    source: 'gemini', isRead: false, isDismissed: false,
   }));
 }

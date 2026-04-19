@@ -5,13 +5,15 @@ import { motion } from 'framer-motion';
 import { logout } from '../../store/slices/authSlice';
 
 const NAV = [
-  { path: '/dashboard', icon: '⬡', label: 'Dashboard' },
-  { path: '/net-worth', icon: '◈', label: 'Net Worth' },
-  { path: '/goals', icon: '◎', label: 'Goals' },
-  { path: '/budget', icon: '◧', label: 'Budget Planner' },
-  { path: '/simulation', icon: '⟳', label: 'Simulator' },
-  { path: '/inflation',  icon: '📈', label: 'Inflation' },
-  { path: '/alerts', icon: '◉', label: 'Alerts', badge: true },
+  { path: '/dashboard',       icon: '⬡',  label: 'Dashboard' },
+ 
+  { path: '/net-worth',       icon: '◈',  label: 'Net Worth' },
+  { path: '/goals',           icon: '◎',  label: 'Goals' },
+  { path: '/budget',          icon: '◧',  label: 'Budget Planner' },
+  { path: '/simulation',      icon: '⟳',  label: 'Simulator' },
+  { path: '/inflation',       icon: '〽', label: 'Inflation' },
+  { path: '/recommendations', icon: '✦',  label: 'AI Recommendations', aibadge: true },
+  { path: '/alerts',          icon: '◉',  label: 'Alerts', badge: true },
 ];
 
 export default function Sidebar() {
@@ -19,6 +21,9 @@ export default function Sidebar() {
   const navigate = useNavigate();
   const { user } = useSelector(s => s.auth);
   const { unreadCount } = useSelector(s => s.alerts);
+  const { aiRecommendations } = useSelector(s => s.score);
+
+  const aiCount = aiRecommendations?.filter(r => r.priority === 'critical' || r.priority === 'high').length ?? 0;
 
   return (
     <aside className="sidebar">
@@ -53,6 +58,9 @@ export default function Sidebar() {
                 <span style={s.navLabel2}>{item.label}</span>
                 {item.badge && unreadCount > 0 && (
                   <span style={s.alertBadge}>{unreadCount}</span>
+                )}
+                {item.aibage && aiCount > 0 && (
+                  <span style={{ ...s.alertBadge, background: '#9061F9' }}>{aiCount}</span>
                 )}
                 {isActive && (
                   <motion.div layoutId="navIndicator" style={s.activeIndicator} initial={false} transition={{ type: 'spring', stiffness: 400, damping: 30 }} />

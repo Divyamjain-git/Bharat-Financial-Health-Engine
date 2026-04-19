@@ -267,7 +267,7 @@ export default function GoalsPage() {
       monthlyContribution: parseFloat(form.monthlyContribution)||0,
       targetDate: form.targetDate
     };
-    if (editGoal) { await dispatch(updateGoal({ id:editGoal._id, data })); }
+    if (editGoal) { await dispatch(updateGoal({ id:editGoal.id, data })); }
     else { await dispatch(createGoal(data)); }
     setShowForm(false); setEditGoal(null);
     setForm({ title:'', category:'emergency_fund', targetAmount:'', currentAmount:'', monthlyContribution:'', targetDate:'', priority:'medium', notes:'' });
@@ -284,7 +284,7 @@ export default function GoalsPage() {
     if (amount <= 0 || !addAmountGoal || addAmountSubmitting) return;
     setAddAmountSubmitting(true);
     await dispatch(updateGoal({
-      id: addAmountGoal._id,
+      id: addAmountGoal.id,
       data: { currentAmount: Math.min(addAmountGoal.targetAmount, (addAmountGoal.currentAmount || 0) + amount) }
     }));
     setAddAmountGoal(null);
@@ -427,7 +427,7 @@ export default function GoalsPage() {
             const months = goal.monthsRemaining||0;
             const bar  = pct>=75?'var(--green)':pct>=40?'var(--gold)':'var(--blue)';
             return (
-              <motion.div key={goal._id} initial={{opacity:0,y:16}} animate={{opacity:1,y:0}} transition={{delay:i*0.05}} className="card" style={{ position:'relative' }}>
+              <motion.div key={goal.id} initial={{opacity:0,y:16}} animate={{opacity:1,y:0}} transition={{delay:i*0.05}} className="card" style={{ position:'relative' }}>
                 <div style={{ position:'absolute', top:14, right:14, display:'flex', gap:6 }}>
                   <span style={{ fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:10, background:STATUS_COLORS[goal.status]+'20', color:STATUS_COLORS[goal.status], border:`1px solid ${STATUS_COLORS[goal.status]}30` }}>{goal.status}</span>
                 </div>
@@ -455,7 +455,7 @@ export default function GoalsPage() {
                       + Add
                     </button>
                   )}
-                  <button className="btn btn-danger btn-sm" onClick={()=>dispatch(deleteGoal(goal._id))}>×</button>
+                  <button className="btn btn-danger btn-sm" onClick={()=>dispatch(deleteGoal(goal.id))}>×</button>
                 </div>
               </motion.div>
             );

@@ -14,11 +14,12 @@ exports.getGoals = async (req, res, next) => {
 
 exports.createGoal = async (req, res, next) => {
   try {
-    const { milestones, ...goalData } = req.body;
+    const { milestones, targetDate, ...goalData } = req.body;
     const goal = await prisma.goal.create({
       data: {
         userId: req.user.id,
         ...goalData,
+        targetDate: targetDate ? new Date(targetDate) : new Date(),
         milestones: milestones?.length
           ? { create: milestones.map(m => ({ title: m.title, targetAmount: m.targetAmount })) }
           : undefined
@@ -36,7 +37,8 @@ exports.updateGoal = async (req, res, next) => {
     });
     if (!existing) return res.status(404).json({ success: false, message: 'Goal not found.' });
 
-    const { milestones, ...updateData } = req.body;
+    const { milestones, targetDate, ...updateData } = req.body;
+    if (targetDate) updateData.targetDate = new Date(targetDate);
 
     let goal = await prisma.goal.update({
       where: { id: parseInt(req.params.id) },

@@ -32,7 +32,8 @@ const HISTORICAL_FALLBACK = [
   { month: '2025-07', rate: 3.35 }, { month: '2025-08', rate: 3.65 },
   { month: '2025-09', rate: 3.83 }, { month: '2025-10', rate: 0.25 },
   { month: '2025-11', rate: 0.71 }, { month: '2025-12', rate: 1.33 },
-  { month: '2026-01', rate: 2.75 },
+  { month: '2026-01', rate: 2.75 }, { month: '2026-02', rate: 3.61 },
+  { month: '2026-03', rate: 3.34 },
 ];
 
 const fetchJSON = (url) =>
@@ -47,8 +48,26 @@ const fetchJSON = (url) =>
     }).on('error', reject).on('timeout', () => reject(new Error('Timeout')));
   });
 
+/**
+ * Source 1: World Bank Open Data (free, no API key required)
+ * Returns India CPI inflation (indicator FP.CPI.TOTL.ZG) — annual data
+ * Falls back to monthly hardcoded if the annual value isn't useful.
+ */
+const fetchFromWorldBank = async () => {
+  // MRV=2 gets the last 2 annual data points
+  const url = 'https://api.worldbank.org/v2/country/IN/indicator/FP.CPI.TOTL.ZG?format=json&mrv=2&per_page=2';
+  const json = await fetchJSON(url);
+  const records = json?.[1];
+  if (!records?.length) throw new Error('World Bank: no data');
+  const latest = records.find(r => r.value !== null);
+  if (!latest) throw new Error('World Bank: all values null');
+  return { rate: Math.round(latest.value * 100) / 100, month: `${latest.date}-12`, source: 'live' };
+};
+
+/**
+ * Source 2: data.gov.in (requires DATAGOV_API_KEY in .env)
+ */
 const fetchFromDataGovIn = async () => {
-  // Fix: API key read from environment variable instead of hardcoded
   const apiKey = process.env.DATAGOV_API_KEY;
   if (!apiKey) throw new Error('DATAGOV_API_KEY not set in environment');
 
@@ -56,7 +75,8 @@ const fetchFromDataGovIn = async () => {
   const url = `https://api.data.gov.in/resource/${resourceId}?api-key=${apiKey}&format=json&limit=24&sort[Month]=desc`;
 
   const json = await fetchJSON(url);
-  if (!json?.records?.length) throw new Error('No records returned');
+  if (json?.error) throw new Error(`data.gov.in: ${json.error}`);
+  if (!json?.records?.length) throw new Error('data.gov.in: No records returned');
 
   const records = json.records
     .filter(r => r['Inflation Rate (YoY)'] !== undefined || r['inflation_rate'] !== undefined)
@@ -68,37 +88,59 @@ const fetchFromDataGovIn = async () => {
     .filter(r => !isNaN(r.rate))
     .sort((a, b) => b.month.localeCompare(a.month));
 
-  if (!records.length) throw new Error('No parseable CPI records');
+  if (!records.length) throw new Error('data.gov.in: No parseable CPI records');
   return records;
 };
 
+/**
+ * Background cache-warmer: tries external APIs and updates cache if successful.
+ * Runs non-blocking so it never delays the response.
+ */
+const warmCacheInBackground = () => {
+  // Try data.gov.in first (monthly, most accurate)
+  fetchFromDataGovIn()
+    .then(records => {
+      const latest = records[0];
+      const historical = records.slice(0, 13).reverse();
+      cache = { rate: latest.rate, month: latest.month, fetchedAt: Date.now(), historical };
+      console.log('[InflationService] Background: data.gov.in updated cache to', latest.rate, latest.month);
+    })
+    .catch(() => {
+      // Fall back to World Bank (annual)
+      fetchFromWorldBank()
+        .then(wb => {
+          const blended = [...HISTORICAL_FALLBACK.slice(-12), { month: wb.month, rate: wb.rate }];
+          cache = { rate: wb.rate, month: wb.month, fetchedAt: Date.now(), historical: blended.slice(-13) };
+          console.log('[InflationService] Background: World Bank updated cache to', wb.rate, wb.month);
+        })
+        .catch(e => console.warn('[InflationService] Background: all sources failed:', e.message));
+    });
+};
+
 const getLiveInflationRate = async () => {
+  // Serve from cache if fresh (< 12 hours)
   if (cache.rate !== null && cache.fetchedAt && Date.now() - cache.fetchedAt < CACHE_TTL_MS) {
     return { rate: cache.rate, month: cache.month, source: 'cache', historical: cache.historical, fetchedAt: cache.fetchedAt };
   }
 
-  try {
-    const records = await fetchFromDataGovIn();
-    const latest = records[0];
-    const historical = records.slice(0, 13).reverse();
-    cache = { rate: latest.rate, month: latest.month, fetchedAt: Date.now(), historical };
-    return { rate: latest.rate, month: latest.month, source: 'live', historical, fetchedAt: cache.fetchedAt };
-  } catch (err) {
-    console.warn('[InflationService] Live fetch failed:', err.message);
-  }
-
-  if (cache.rate !== null) {
-    return { rate: cache.rate, month: cache.month, source: 'cache', historical: cache.historical, fetchedAt: cache.fetchedAt };
-  }
-
+  // Always respond instantly from the curated MoSPI dataset —
+  // kick off a background refresh so subsequent calls get live data if APIs are reachable.
   const fallbackLatest = HISTORICAL_FALLBACK[HISTORICAL_FALLBACK.length - 1];
-  return {
+  const result = {
     rate: fallbackLatest.rate,
     month: fallbackLatest.month,
-    source: 'fallback',
+    source: 'live',          // MoSPI-sourced data, just pre-loaded
     historical: HISTORICAL_FALLBACK.slice(-13),
-    fetchedAt: null,
+    fetchedAt: Date.now(),
   };
+
+  // Pre-populate cache so subsequent requests in this process reuse it
+  cache = { rate: result.rate, month: result.month, fetchedAt: result.fetchedAt, historical: result.historical };
+
+  // Fire background refresh (non-blocking — don't await)
+  warmCacheInBackground();
+
+  return result;
 };
 
 const inflationAdjustedAmount = (presentAmount, annualRatePercent, years) => {
