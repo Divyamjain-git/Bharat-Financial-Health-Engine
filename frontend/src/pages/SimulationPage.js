@@ -120,7 +120,7 @@ export default function SimulationPage() {
         </div>
       )}
 
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
+      <div className="responsive-grid rg-2">
         {/* Left — Scenario picker + controls */}
         <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
           <motion.div initial={{opacity:0,y:12}} animate={{opacity:1,y:0}} transition={{delay:0.1}} className="card">
@@ -170,7 +170,7 @@ export default function SimulationPage() {
           {result && (
             <motion.div initial={{opacity:0,scale:0.96}} animate={{opacity:1,scale:1}} className="card">
               <div style={{ fontFamily:'var(--font-display)', fontSize:15, fontWeight:800, marginBottom:16 }}>📊 Simulation Result</div>
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:16 }}>
+              <div className="responsive-grid rg-2" style={{ marginBottom:16 }}>
                 <div style={{ background:'var(--bg-elevated)', borderRadius:10, padding:'14px', textAlign:'center' }}>
                   <div style={{ fontSize:11, color:'var(--text-3)', marginBottom:6, textTransform:'uppercase', letterSpacing:0.5 }}>Current Score</div>
                   <div style={{ fontFamily:'var(--font-display)', fontSize:36, fontWeight:900, color:origColor }}>{result.originalScore}</div>

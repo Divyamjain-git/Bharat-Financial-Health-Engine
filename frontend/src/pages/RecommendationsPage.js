@@ -372,7 +372,7 @@ export default function RecommendationsPage() {
       )}
 
       {/* 3-column layout */}
-      <div style={{ display: 'grid', gridTemplateColumns: showChat ? '180px 1fr 280px' : '180px 1fr', gap: 16, alignItems: 'start' }}>
+      <div className={`responsive-grid ${showChat ? 'rg-3col' : 'rg-sidebar-main'}`} style={{ alignItems: 'start' }}>
 
         {/* LEFT SIDEBAR — Filters */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14, position: 'sticky', top: 20 }}>

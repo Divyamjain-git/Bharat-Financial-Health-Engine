@@ -98,7 +98,7 @@ export default function Sidebar({ isOpen, onClose }) {
 
 const s = {
   logo: { display: 'flex', alignItems: 'center', gap: 10, padding: '20px 18px', borderBottom: '1px solid var(--border)', position: 'relative' },
-  closeBtn: { background: 'transparent', border: 'none', color: 'var(--text)', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '5px' },
+  closeBtn: { background: 'transparent', border: 'none', color: 'var(--text)', fontSize: 18, cursor: 'pointer', alignItems: 'center', justifyContent: 'center', padding: '5px' },
   logoMark: { width: 38, height: 38, borderRadius: 10, background: 'linear-gradient(135deg, var(--gold), #d4960f)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   logoText: { fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 900, letterSpacing: 2, color: 'var(--text)' },
   logoSub: { fontSize: 9, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: 0.5 },

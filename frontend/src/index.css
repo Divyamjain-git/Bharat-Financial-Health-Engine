@@ -148,8 +148,19 @@ h1,h2,h3,h4,h5 { font-family: var(--font-display); font-weight: 800; line-height
   .sidebar-backdrop { display: block; z-index: 90; }
   .grid-3 { grid-template-columns: 1fr 1fr; }
   .dashboard-grid { grid-template-columns: 1fr !important; }
+  
+  /* Force complex multi-column grids to stack on mobile */
+  .responsive-grid { grid-template-columns: 1fr !important; }
 }
 @media (max-width: 640px) {
   .grid-2, .grid-3 { grid-template-columns: 1fr; }
 }
 .dashboard-grid { display: grid; grid-template-columns: 300px 1fr; }
+
+/* Responsive Grid Utilities */
+.responsive-grid { display: grid; gap: 16px; }
+.rg-2 { grid-template-columns: 1fr 1fr; }
+.rg-3 { grid-template-columns: repeat(3, 1fr); }
+.rg-main-sidebar { grid-template-columns: 1fr 300px; }
+.rg-sidebar-main { grid-template-columns: 300px 1fr; }
+.rg-3col { grid-template-columns: 180px 1fr 280px; }

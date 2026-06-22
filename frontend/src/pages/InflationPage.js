@@ -873,7 +873,7 @@ export default function InflationPage() {
         {/* ── TAB: GOAL PLANNER ─────────────────────────────────────────────── */}
         {tab === 'goals' && (
           <motion.div key="goals" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: 16 }}>
+            <div className="responsive-grid rg-sidebar-main">
 
               {/* Input form */}
               <div className="card">
@@ -995,7 +995,7 @@ export default function InflationPage() {
         {/* ── TAB: EMERGENCY FUND ───────────────────────────────────────────── */}
         {tab === 'emergency' && (
           <motion.div key="emergency" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '360px 1fr', gap: 16 }}>
+            <div className="responsive-grid rg-sidebar-main">
 
               {/* Input */}
               <div className="card">
@@ -1117,7 +1117,7 @@ export default function InflationPage() {
         {/* ── TAB: INFLATION WHAT-IF ────────────────────────────────────────── */}
         {tab === 'simulate' && (
           <motion.div key="simulate" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: 16 }}>
+            <div className="responsive-grid rg-sidebar-main">
 
               {/* Input */}
               <div className="card">
