@@ -1,7 +1,8 @@
 /**
  * Recommendation Engine — Enhanced Rule-Based System
  * Generates up to 8 deeply personalized financial recommendations
- * with specific rupee amounts, actionable steps, and India-specific advice.
+ * with specific rupee amounts, actionable steps, projected score impacts,
+ * time-to-complete estimates, and India-specific advice.
  */
 
 const generateRecommendations = (metrics, components, loans = []) => {
@@ -27,7 +28,9 @@ const generateRecommendations = (metrics, components, loans = []) => {
     const extraEMI = Math.round(totalMonthlyEMI * 0.1);
     recommendations.push({
       category: 'debt',
-      priority: 'high',
+      priority: 'critical',
+      projectedScoreImpact: 12,
+      timeToComplete: 'ongoing',
       title: 'Emergency: Debt Is Consuming Your Income',
       description: `Your debt-to-income ratio is ${dtiRatio.toFixed(1)}% — critically above the safe limit of 40%. You're paying ₹${totalMonthlyEMI?.toLocaleString('en-IN')} every month just in EMIs, leaving barely ₹${Math.max(0, disposable).toLocaleString('en-IN')} for everything else.`,
       actionStep: `Use the avalanche method: pay an extra ₹${extraEMI.toLocaleString('en-IN')}/month on your highest interest loan. Even this small step can cut your total interest by 15-20%.`
@@ -36,6 +39,8 @@ const generateRecommendations = (metrics, components, loans = []) => {
     recommendations.push({
       category: 'debt',
       priority: 'high',
+      projectedScoreImpact: 8,
+      timeToComplete: 'ongoing',
       title: 'Reduce EMI Burden Below 40% of Income',
       description: `Your DTI is ${dtiRatio.toFixed(1)}%, above the healthy threshold of 40%. Your EMIs of ₹${totalMonthlyEMI?.toLocaleString('en-IN')}/month are squeezing your ability to save and invest.`,
       actionStep: `Avoid any new loans for 12 months. Direct any bonus or windfall toward prepaying your highest-rate loan to reduce the EMI burden.`
@@ -44,6 +49,8 @@ const generateRecommendations = (metrics, components, loans = []) => {
     recommendations.push({
       category: 'debt',
       priority: 'medium',
+      projectedScoreImpact: 5,
+      timeToComplete: '1 week',
       title: 'Optimize Your Loan Portfolio',
       description: `Your DTI of ${dtiRatio.toFixed(1)}% is manageable but not ideal. Reducing it below 25% will significantly boost your financial flexibility and credit score.`,
       actionStep: `Check if any loan can be refinanced at a lower rate. A 1% rate reduction on a ₹10L loan saves ~₹600/month in EMI.`
@@ -54,7 +61,9 @@ const generateRecommendations = (metrics, components, loans = []) => {
   if (savingsRate < 0) {
     recommendations.push({
       category: 'savings',
-      priority: 'high',
+      priority: 'critical',
+      projectedScoreImpact: 14,
+      timeToComplete: '1 hour',
       title: '🚨 You Are Spending More Than You Earn',
       description: `Your monthly expenses (₹${totalMonthlyExpenses?.toLocaleString('en-IN')}) plus EMIs (₹${totalMonthlyEMI?.toLocaleString('en-IN')}) exceed your income (₹${monthlyIncome?.toLocaleString('en-IN')}). This deficit compounds every month and leads to debt traps.`,
       actionStep: `Create a zero-based budget today using the app "Walnut" or "Money Manager". Identify 3 expenses you can cut immediately — subscriptions, dining out, and impulse spending are usually the first to find.`
@@ -66,6 +75,8 @@ const generateRecommendations = (metrics, components, loans = []) => {
     recommendations.push({
       category: 'savings',
       priority: 'high',
+      projectedScoreImpact: 10,
+      timeToComplete: '30 min',
       title: 'Automate Savings to Reach 20% Rate',
       description: `You're saving only ${savingsRate.toFixed(1)}% (≈₹${currentSaving.toLocaleString('en-IN')}/month) vs the recommended 20% (₹${targetSaving.toLocaleString('en-IN')}/month). The gap of ₹${gap.toLocaleString('en-IN')}/month is holding back your wealth building.`,
       actionStep: `Set up a ₹${Math.min(gap, disposable > 0 ? Math.round(disposable * 0.5) : 500).toLocaleString('en-IN')}/month SIP in a liquid fund on salary day via Groww or Zerodha. Automate it so you save before you spend.`
@@ -75,6 +86,8 @@ const generateRecommendations = (metrics, components, loans = []) => {
     recommendations.push({
       category: 'savings',
       priority: 'medium',
+      projectedScoreImpact: 6,
+      timeToComplete: '30 min',
       title: `Push Savings from ${savingsRate.toFixed(0)}% to 20%`,
       description: `Your ${savingsRate.toFixed(1)}% savings rate is decent but increasing it by just 5% (₹${boostAmount.toLocaleString('en-IN')}/month more) could add ₹${(boostAmount * 12 * 10).toLocaleString('en-IN')} to your wealth over 10 years at 12% returns.`,
       actionStep: `Increase your existing SIP by ₹500 every 3 months (step-up SIP). Also consider NPS Tier-1 for additional ₹50,000 deduction under Section 80CCD(1B) — that's ₹15,600 in tax saved annually.`
@@ -86,7 +99,9 @@ const generateRecommendations = (metrics, components, loans = []) => {
     const target = Math.round(totalMonthlyExpenses * 3);
     recommendations.push({
       category: 'emergency',
-      priority: 'high',
+      priority: 'critical',
+      projectedScoreImpact: 15,
+      timeToComplete: '15 min',
       title: 'Build Emergency Fund — Start with ₹10,000 This Week',
       description: `You have virtually no emergency fund. A single medical emergency or job loss could force you into high-interest debt (personal loans at 18-24%). Your 3-month target is ₹${target.toLocaleString('en-IN')}.`,
       actionStep: `Open a separate savings account (IDFC FIRST Bank at 7% or AU Small Finance at 7.25%) and transfer ₹10,000 immediately. Set up a ₹${Math.round(target / 6).toLocaleString('en-IN')}/month auto-transfer to reach your goal in 6 months.`
@@ -96,6 +111,8 @@ const generateRecommendations = (metrics, components, loans = []) => {
     recommendations.push({
       category: 'emergency',
       priority: 'high',
+      projectedScoreImpact: 12,
+      timeToComplete: '15 min',
       title: `Add ₹${additionalNeeded.toLocaleString('en-IN')} to Reach 3-Month Safety Net`,
       description: `You have ${emergencyFundMonths.toFixed(1)} months of expenses covered. You need ₹${additionalNeeded.toLocaleString('en-IN')} more to reach the minimum 3-month safety net recommended by financial planners.`,
       actionStep: `Park your emergency fund in a liquid mutual fund (Paytm Money or Kuvera) earning 6.5-7% — far better than a regular savings account at 3.5%. Redeem within 1 business day when needed.`
@@ -105,6 +122,8 @@ const generateRecommendations = (metrics, components, loans = []) => {
     recommendations.push({
       category: 'emergency',
       priority: 'medium',
+      projectedScoreImpact: 7,
+      timeToComplete: '15 min',
       title: 'Grow Emergency Fund from 3 to 6 Months',
       description: `Good — you have ${emergencyFundMonths.toFixed(1)} months covered. Extending to 6 months requires ₹${additional.toLocaleString('en-IN')} more, giving you full protection for extended job loss or medical crisis.`,
       actionStep: `Allocate 50% of any bonus or tax refund directly to your emergency fund. Consider a sweep FD (auto-FD) which earns 7-7.5% while keeping funds accessible.`
@@ -115,7 +134,9 @@ const generateRecommendations = (metrics, components, loans = []) => {
   if (creditUtilization > 75) {
     recommendations.push({
       category: 'credit',
-      priority: 'high',
+      priority: 'critical',
+      projectedScoreImpact: 12,
+      timeToComplete: '1 week',
       title: 'Critical: Reduce Credit Card Usage to Below 30%',
       description: `You're using ${creditUtilization.toFixed(1)}% of your credit limit — this is severely damaging your CIBIL score (potentially by 50-100 points). High utilization signals financial distress to lenders and will affect your ability to get loans at good rates.`,
       actionStep: `Pay more than the minimum due this month. Request a credit limit increase from your card issuer (doesn't always require income proof). Target getting utilization below 30% within 3 months.`
@@ -124,6 +145,8 @@ const generateRecommendations = (metrics, components, loans = []) => {
     recommendations.push({
       category: 'credit',
       priority: 'medium',
+      projectedScoreImpact: 8,
+      timeToComplete: '1 day',
       title: `Reduce Credit Utilization from ${creditUtilization.toFixed(0)}% to Under 30%`,
       description: `At ${creditUtilization.toFixed(1)}%, your credit utilization is above the optimal 30% threshold. Credit cards charge 36-42% annual interest on outstanding balances — the most expensive debt you can carry.`,
       actionStep: `Pay your full credit card balance every month, not just the minimum. Enable auto-pay for the full amount on your bank app to never miss a payment and avoid interest charges.`
@@ -132,6 +155,8 @@ const generateRecommendations = (metrics, components, loans = []) => {
     recommendations.push({
       category: 'credit',
       priority: 'low',
+      projectedScoreImpact: 3,
+      timeToComplete: '30 min',
       title: 'Excellent Credit Utilization — Leverage It',
       description: `Your ${creditUtilization.toFixed(1)}% credit utilization is excellent and likely helping your CIBIL score. Use this strong credit profile to your advantage.`,
       actionStep: `Apply for a premium credit card (Axis Magnus, HDFC Regalia) with better rewards. Your good credit profile means you'll likely get approved and earn 3-5% back on spends through reward points.`
@@ -144,6 +169,8 @@ const generateRecommendations = (metrics, components, loans = []) => {
     recommendations.push({
       category: 'expense',
       priority: 'high',
+      projectedScoreImpact: 8,
+      timeToComplete: '1 hour',
       title: 'Expenses Are Eating 80%+ of Your Income',
       description: `₹${totalMonthlyExpenses?.toLocaleString('en-IN')} in monthly expenses consumes ${expenseRatio.toFixed(1)}% of your income before EMIs. This leaves almost nothing for savings, investments, or unexpected costs.`,
       actionStep: `Do a 30-day expense audit. Track every rupee using "Walnut" or "CRED". Your top 3 cuttable categories are usually dining out (save ₹2,000-5,000), subscriptions (save ₹500-2,000), and impulse shopping.`
@@ -152,6 +179,8 @@ const generateRecommendations = (metrics, components, loans = []) => {
     recommendations.push({
       category: 'expense',
       priority: 'medium',
+      projectedScoreImpact: 5,
+      timeToComplete: '1 hour',
       title: 'Reduce Expense Ratio Below 50%',
       description: `Your expenses are ${expenseRatio.toFixed(1)}% of income. Following the 50/30/20 rule — 50% needs, 30% wants, 20% savings — would free up ₹${Math.round(monthlyIncome * 0.2).toLocaleString('en-IN')}/month for savings and investments.`,
       actionStep: `Review subscriptions (OTT, gym, apps) — cancel unused ones. Meal planning reduces grocery and dining costs by 20-30%. These small changes compound into ₹${Math.round(monthlyIncome * 0.05 * 12).toLocaleString('en-IN')}/year in savings.`
@@ -166,6 +195,8 @@ const generateRecommendations = (metrics, components, loans = []) => {
     recommendations.push({
       category: 'debt',
       priority: 'medium',
+      projectedScoreImpact: 7,
+      timeToComplete: '1 week',
       title: `Consolidate ${highRateLoans.length} High-Interest Loans`,
       description: `You have ${highRateLoans.length} loans charging above 14% interest, totaling ₹${totalOutstanding.toLocaleString('en-IN')} outstanding and ₹${totalHighEMI.toLocaleString('en-IN')}/month in EMIs. Consolidating at 10-12% could save ₹${Math.round(totalOutstanding * 0.03 / 12).toLocaleString('en-IN')}/month.`,
       actionStep: `Check pre-approved personal loan offers on your bank's app (HDFC, ICICI, Axis) or on Bankbazaar.com. A debt consolidation loan at 11% vs 18% on ₹${totalOutstanding.toLocaleString('en-IN')} saves ~₹${Math.round(totalOutstanding * 0.07 / 12).toLocaleString('en-IN')}/month.`
@@ -178,6 +209,8 @@ const generateRecommendations = (metrics, components, loans = []) => {
     recommendations.push({
       category: 'tax',
       priority: savingsScore > 60 ? 'medium' : 'low',
+      projectedScoreImpact: 4,
+      timeToComplete: '30 min',
       title: `Save up to ₹${taxSaving.toLocaleString('en-IN')} in Taxes This Year`,
       description: `With an annual income of ₹${annualIncome.toLocaleString('en-IN')}, you can legally reduce your tax liability through 80C (₹1.5L), 80CCD(1B) NPS (₹50K extra), and 80D health insurance (₹25K). That's up to ₹2.25L in deductions.`,
       actionStep: `Start a ₹12,500/month ELSS SIP to exhaust 80C by March. Open NPS Tier-1 account (Zerodha, Groww) for the extra ₹50,000 deduction under 80CCD(1B). Total tax saved: up to ₹${taxSaving.toLocaleString('en-IN')}/year.`
@@ -190,6 +223,8 @@ const generateRecommendations = (metrics, components, loans = []) => {
     recommendations.push({
       category: 'investment',
       priority: 'low',
+      projectedScoreImpact: 6,
+      timeToComplete: '30 min',
       title: 'Your Foundation Is Strong — Now Build Wealth',
       description: `Congratulations — your financial fundamentals are solid. With ₹${disposable.toLocaleString('en-IN')}/month in disposable income, you're in a position to seriously build long-term wealth through equity investments.`,
       actionStep: `Start or increase a ₹${investAmount.toLocaleString('en-IN')}/month SIP split across: 60% index fund (Nifty 50 or Nifty 500), 30% mid-cap fund, 10% international fund. At 12% CAGR, this grows to ₹${Math.round(investAmount * 12 * ((Math.pow(1.12, 10) - 1) / 0.12)).toLocaleString('en-IN')} in 10 years.`
@@ -202,6 +237,8 @@ const generateRecommendations = (metrics, components, loans = []) => {
     recommendations.push({
       category: 'insurance',
       priority: 'low',
+      projectedScoreImpact: 3,
+      timeToComplete: '15 min',
       title: 'Protect Your Income with Term Insurance',
       description: `Your family needs a ₹${termCover.toLocaleString('en-IN')} term insurance cover (10x annual income = ₹${annualIncome.toLocaleString('en-IN')}). A ₹1 crore term plan for a 30-year-old costs just ₹8,000-12,000/year — not having it is the biggest financial risk.`,
       actionStep: `Get quotes on Policybazaar.com for a 30-35 year term plan. Choose a claim settlement ratio > 98% (LIC, HDFC Life, ICICI Pru). Also get a ₹5L health insurance floater for ₹12,000-18,000/year.`
@@ -209,7 +246,7 @@ const generateRecommendations = (metrics, components, loans = []) => {
   }
 
   // ─── Sort and limit ───────────────────────────────────────────────────────
-  const order = { high: 0, medium: 1, low: 2 };
+  const order = { critical: 0, high: 1, medium: 2, low: 3 };
   recommendations.sort((a, b) => order[a.priority] - order[b.priority]);
 
   return recommendations.slice(0, 8);

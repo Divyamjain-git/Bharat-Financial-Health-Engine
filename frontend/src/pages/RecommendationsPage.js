@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
-import { fetchLatestScore, fetchRecommendations, fetchAIRecommendations } from '../store/slices/scoreSlice';
+import { fetchLatestScore, fetchRecommendations, fetchAIRecommendations, sendChatMessage, markRecDone, unmarkRecDone, clearChat } from '../store/slices/scoreSlice';
 import { fetchProfile } from '../store/slices/profileSlice';
 import { fetchGoals } from '../store/slices/goalsSlice';
 import { fetchNetWorth } from '../store/slices/netWorthSlice';
@@ -18,174 +18,116 @@ const CATEGORY_META = {
   insurance:  { label: 'Insurance',  icon: '🔒', color: '#8B5CF6', dim: 'rgba(139,92,246,0.12)' },
   goal:       { label: 'Goal',       icon: '🎯', color: '#F59E0B', dim: 'rgba(245,158,11,0.12)' },
 };
-
 const PRIORITY_META = {
   critical: { label: 'Critical', color: '#EF4444', bg: 'rgba(239,68,68,0.12)', border: 'rgba(239,68,68,0.3)' },
   high:     { label: 'High',     color: '#F0B429', bg: 'rgba(240,180,41,0.12)', border: 'rgba(240,180,41,0.3)' },
   medium:   { label: 'Medium',   color: '#4F8EF7', bg: 'rgba(79,142,247,0.12)', border: 'rgba(79,142,247,0.3)' },
   low:      { label: 'Low',      color: '#31C48D', bg: 'rgba(49,196,141,0.12)', border: 'rgba(49,196,141,0.3)' },
 };
-
 const fmt = (n) => n != null ? `₹${Number(n).toLocaleString('en-IN')}` : '—';
 
 // ─── Score Ring ───────────────────────────────────────────────────────────────
-function ScoreRing({ score, grade }) {
+function ScoreRing({ score, grade, size = 100 }) {
   const color = grade === 'Excellent' ? '#0DCFAA' : grade === 'Good' ? '#31C48D' : grade === 'Fair' ? '#F0B429' : grade === 'Poor' ? '#FF8A4C' : '#F05252';
-  const r = 52, circ = 2 * Math.PI * r;
-  const dash = (score / 100) * circ;
+  const r = size * 0.43, circ = 2 * Math.PI * r, dash = (score / 100) * circ;
   return (
-    <div style={{ position: 'relative', width: 120, height: 120, flexShrink: 0 }}>
-      <svg width="120" height="120" style={{ transform: 'rotate(-90deg)' }}>
-        <circle cx="60" cy="60" r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="10" />
-        <circle cx="60" cy="60" r={r} fill="none" stroke={color} strokeWidth="10"
-          strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
-          style={{ transition: 'stroke-dasharray 1s ease' }} />
+    <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
+      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={size*0.08} />
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={size*0.08}
+          strokeDasharray={`${dash} ${circ}`} strokeLinecap="round" style={{ transition: 'stroke-dasharray 1s ease' }} />
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <span style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 900, color, lineHeight: 1 }}>{score}</span>
-        <span style={{ fontSize: 10, color: 'var(--text-3)', fontWeight: 700, letterSpacing: 0.5 }}>{grade}</span>
+        <span style={{ fontFamily: 'var(--font-display)', fontSize: size*0.24, fontWeight: 900, color, lineHeight: 1 }}>{score}</span>
+        <span style={{ fontSize: size*0.09, color: 'var(--text-3)', fontWeight: 700, letterSpacing: 0.5 }}>{grade}</span>
       </div>
-    </div>
-  );
-}
-
-// ─── Component Meter ─────────────────────────────────────────────────────────
-function ComponentMeter({ label, value, icon }) {
-  const color = value >= 75 ? '#0DCFAA' : value >= 50 ? '#F0B429' : value >= 35 ? '#FF8A4C' : '#F05252';
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: 12, color: 'var(--text-2)', display: 'flex', alignItems: 'center', gap: 5 }}>
-          <span>{icon}</span>{label}
-        </span>
-        <span style={{ fontSize: 12, fontWeight: 700, color }}>{value}/100</span>
-      </div>
-      <div style={{ height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 3, overflow: 'hidden' }}>
-        <motion.div initial={{ width: 0 }} animate={{ width: `${value}%` }} transition={{ duration: 0.8, ease: 'easeOut' }}
-          style={{ height: '100%', background: color, borderRadius: 3 }} />
-      </div>
-    </div>
-  );
-}
-
-// ─── Metric Chip ─────────────────────────────────────────────────────────────
-function MetricChip({ label, value, sub, color = 'var(--text)' }) {
-  return (
-    <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 10, padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <span style={{ fontSize: 10, color: 'var(--text-3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.8 }}>{label}</span>
-      <span style={{ fontSize: 18, fontWeight: 800, fontFamily: 'var(--font-display)', color }}>{value}</span>
-      {sub && <span style={{ fontSize: 11, color: 'var(--text-3)' }}>{sub}</span>}
     </div>
   );
 }
 
 // ─── Recommendation Card ──────────────────────────────────────────────────────
-function RecCard({ rec, index, isAI }) {
+function RecCard({ rec, index, isAI, isDone, onToggleDone, linkedGoal }) {
   const [expanded, setExpanded] = useState(false);
   const cat = CATEGORY_META[rec.category] ?? CATEGORY_META.savings;
   const pri = PRIORITY_META[rec.priority] ?? PRIORITY_META.medium;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05 }}
-      style={{
-        background: 'var(--bg-card)',
-        border: `1px solid ${expanded ? pri.border : 'var(--border)'}`,
-        borderRadius: 14,
-        overflow: 'hidden',
-        transition: 'border-color 0.2s',
-        cursor: 'pointer',
-      }}
-      onClick={() => setExpanded(e => !e)}
+    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: isDone ? 0.5 : 1, y: 0 }} transition={{ delay: index * 0.04 }}
+      style={{ background: 'var(--bg-card)', border: `1px solid ${expanded ? pri.border : 'var(--border)'}`, borderRadius: 14, overflow: 'hidden', transition: 'border-color 0.2s, opacity 0.3s', cursor: 'pointer', position: 'relative' }}
     >
-      {/* Header */}
-      <div style={{ padding: '16px 18px', display: 'flex', alignItems: 'flex-start', gap: 14 }}>
-        {/* Category Icon */}
-        <div style={{ width: 42, height: 42, borderRadius: 11, background: cat.dim, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>
-          {cat.icon}
-        </div>
+      {/* Left accent bar */}
+      <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, background: pri.color, borderRadius: '14px 0 0 14px' }} />
 
-        {/* Content */}
+      {/* Header */}
+      <div style={{ padding: '16px 16px 16px 20px', display: 'flex', alignItems: 'flex-start', gap: 12 }} onClick={() => setExpanded(e => !e)}>
+        <div style={{ width: 40, height: 40, borderRadius: 10, background: cat.dim, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>{cat.icon}</div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 5 }}>
-            {/* Priority badge */}
-            <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.8, color: pri.color, background: pri.bg, border: `1px solid ${pri.border}`, borderRadius: 5, padding: '2px 7px' }}>
-              {pri.label}
-            </span>
-            {/* Category badge */}
-            <span style={{ fontSize: 10, fontWeight: 700, color: cat.color, background: cat.dim, borderRadius: 5, padding: '2px 7px' }}>
-              {cat.label}
-            </span>
-            {/* AI badge */}
-            {isAI && (
-              <span style={{ fontSize: 10, fontWeight: 700, color: '#9061F9', background: 'rgba(144,97,249,0.12)', borderRadius: 5, padding: '2px 7px' }}>
-                ✨ AI
-              </span>
-            )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
+            <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.8, color: pri.color, background: pri.bg, border: `1px solid ${pri.border}`, borderRadius: 5, padding: '2px 7px' }}>{pri.label}</span>
+            <span style={{ fontSize: 10, fontWeight: 700, color: cat.color, background: cat.dim, borderRadius: 5, padding: '2px 7px' }}>{cat.label}</span>
+            {isAI && <span style={{ fontSize: 10, fontWeight: 700, color: '#9061F9', background: 'rgba(144,97,249,0.12)', borderRadius: 5, padding: '2px 7px' }}>✨ AI</span>}
+            {rec.projectedScoreImpact > 0 && <span style={{ fontSize: 10, fontWeight: 700, color: '#0DCFAA', background: 'rgba(13,207,170,0.1)', borderRadius: 5, padding: '2px 7px' }}>+{rec.projectedScoreImpact} pts</span>}
+            {rec.timeToComplete && <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-3)', background: 'var(--bg-elevated)', borderRadius: 5, padding: '2px 7px' }}>⏱ {rec.timeToComplete}</span>}
           </div>
-          <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 800, lineHeight: 1.3, marginBottom: 6 }}>
-            {rec.title}
-          </h3>
-          <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>
-            {rec.description}
-          </p>
-          {/* Impact pill */}
+          <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 800, lineHeight: 1.3, marginBottom: 5, textDecoration: isDone ? 'line-through' : 'none' }}>{rec.title}</h3>
+          <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>{rec.description}</p>
           {rec.impact && (
             <div style={{ marginTop: 8, display: 'inline-flex', alignItems: 'center', gap: 5, background: 'rgba(13,207,170,0.1)', border: '1px solid rgba(13,207,170,0.2)', borderRadius: 6, padding: '4px 10px' }}>
               <span style={{ fontSize: 12, color: '#0DCFAA', fontWeight: 700 }}>💰 {rec.impact}</span>
             </div>
           )}
         </div>
-
-        {/* Expand arrow */}
-        <motion.div animate={{ rotate: expanded ? 180 : 0 }} style={{ color: 'var(--text-3)', fontSize: 16, flexShrink: 0, marginTop: 4 }}>▾</motion.div>
+        {/* Right section: done button + expand */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          <button onClick={e => { e.stopPropagation(); onToggleDone(); }}
+            style={{ width: 32, height: 32, borderRadius: 8, border: `1px solid ${isDone ? 'rgba(49,196,141,0.3)' : 'var(--border)'}`, background: isDone ? 'rgba(49,196,141,0.15)' : 'var(--bg-elevated)', color: isDone ? '#31C48D' : 'var(--text-3)', fontSize: 15, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
+            title={isDone ? 'Undo' : 'Mark Done'}>
+            {isDone ? '✓' : '○'}
+          </button>
+          <motion.div animate={{ rotate: expanded ? 180 : 0 }} style={{ color: 'var(--text-3)', fontSize: 14 }}>▾</motion.div>
+        </div>
       </div>
 
-      {/* Expanded Detail */}
+      {/* Expanded Details */}
       <AnimatePresence>
         {expanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            style={{ overflow: 'hidden' }}
-          >
-            <div style={{ borderTop: '1px solid var(--border)', padding: '18px 18px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-
-              {/* Action Step */}
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.25 }} style={{ overflow: 'hidden' }}>
+            <div style={{ borderTop: '1px solid var(--border)', padding: '16px 20px 18px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               {rec.actionStep && (
                 <div style={{ background: 'rgba(240,180,41,0.07)', border: '1px solid rgba(240,180,41,0.2)', borderRadius: 10, padding: '12px 14px' }}>
-                  <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 }}>⚡ Action Step (do this week)</div>
-                  <p style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.6 }}>{rec.actionStep}</p>
+                  <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 }}>⚡ Action This Week</div>
+                  <p style={{ fontSize: 12, color: 'var(--text)', lineHeight: 1.6 }}>{rec.actionStep}</p>
                 </div>
               )}
-
-              {/* Calculation */}
               {rec.calculation && (
                 <div style={{ background: 'rgba(79,142,247,0.07)', border: '1px solid rgba(79,142,247,0.2)', borderRadius: 10, padding: '12px 14px' }}>
                   <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--blue)', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 }}>🔢 The Math</div>
-                  <p style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.6, fontFamily: 'monospace' }}>{rec.calculation}</p>
+                  <p style={{ fontSize: 12, color: 'var(--text)', lineHeight: 1.6, fontFamily: 'monospace' }}>{rec.calculation}</p>
                 </div>
               )}
-
-              {/* Why People Avoid */}
               {rec.whyPeopleAvoid && (
                 <div style={{ background: 'rgba(144,97,249,0.07)', border: '1px solid rgba(144,97,249,0.2)', borderRadius: 10, padding: '12px 14px' }}>
-                  <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--purple)', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 }}>🧠 Why People Avoid This</div>
-                  <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>{rec.whyPeopleAvoid}</p>
+                  <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--purple)', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 }}>🧠 Why People Skip This</div>
+                  <p style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.6 }}>{rec.whyPeopleAvoid}</p>
                 </div>
               )}
-
-              {/* Action Step for rule-based (no whyPeopleAvoid) */}
-              {rec.actionStep && !rec.whyPeopleAvoid && !rec.calculation && (
-                <div style={{ fontSize: 12, color: 'var(--text-3)', fontStyle: 'italic' }}>
-                  Click "Update Profile" to recalculate after taking action.
+              {linkedGoal && (
+                <div style={{ background: 'rgba(13,207,170,0.07)', border: '1px solid rgba(13,207,170,0.2)', borderRadius: 10, padding: '12px 14px' }}>
+                  <div style={{ fontSize: 10, fontWeight: 800, color: '#0DCFAA', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 }}>🎯 Linked Goal</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4 }}>{linkedGoal.icon || '🎯'} {linkedGoal.title}</div>
+                  <div style={{ height: 5, background: 'rgba(255,255,255,0.06)', borderRadius: 3, overflow: 'hidden', marginBottom: 4 }}>
+                    <div style={{ height: '100%', width: `${Math.min(100, Math.round((linkedGoal.currentAmount / linkedGoal.targetAmount) * 100))}%`, background: '#0DCFAA', borderRadius: 3, transition: 'width 0.6s' }} />
+                  </div>
+                  <div style={{ fontSize: 10, color: 'var(--text-3)', display: 'flex', justifyContent: 'space-between' }}>
+                    <span>{fmt(linkedGoal.currentAmount)}</span><span>{fmt(linkedGoal.targetAmount)}</span>
+                  </div>
                 </div>
               )}
-
+              {!rec.calculation && !rec.whyPeopleAvoid && !linkedGoal && rec.actionStep && (
+                <div style={{ fontSize: 12, color: 'var(--text-3)', fontStyle: 'italic', padding: '8px 14px' }}>
+                  Update your profile after taking action to recalculate your score.
+                </div>
+              )}
             </div>
           </motion.div>
         )}
@@ -194,26 +136,103 @@ function RecCard({ rec, index, isAI }) {
   );
 }
 
+// ─── AI Chat Panel ────────────────────────────────────────────────────────────
+function AIChatPanel({ financialContext }) {
+  const dispatch = useDispatch();
+  const { aiChat, chatLoading } = useSelector(s => s.score);
+  const [msg, setMsg] = useState('');
+  const chatEndRef = useRef(null);
+
+  useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [aiChat]);
+
+  const handleSend = () => {
+    if (!msg.trim() || chatLoading) return;
+    dispatch(sendChatMessage({ message: msg.trim(), financialContext, history: aiChat }));
+    setMsg('');
+  };
+
+  const suggestions = ['How can I reduce my DTI?', 'Best tax saving options for me?', 'Should I prepay my loan?', 'How to build emergency fund fast?'];
+
+  return (
+    <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16, display: 'flex', flexDirection: 'column', height: '100%', minHeight: 400, maxHeight: 'calc(100vh - 200px)', overflow: 'hidden' }}>
+      {/* Header */}
+      <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)', background: 'linear-gradient(135deg, rgba(144,97,249,0.1), rgba(79,142,247,0.08))' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 18 }}>✨</span>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 800 }}>Ask Gemini</span>
+          </div>
+          {aiChat.length > 0 && (
+            <button onClick={() => dispatch(clearChat())} style={{ fontSize: 11, color: 'var(--text-3)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)' }}>Clear</button>
+          )}
+        </div>
+        <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 4 }}>Ask about your finances — uses your real data</div>
+      </div>
+
+      {/* Messages */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {aiChat.length === 0 && !chatLoading && (
+          <div style={{ textAlign: 'center', padding: '20px 10px' }}>
+            <div style={{ fontSize: 28, marginBottom: 10 }}>💡</div>
+            <div style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 14 }}>Ask me anything about your financial health</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {suggestions.map(s => (
+                <button key={s} onClick={() => { setMsg(s); }} style={{ fontSize: 12, color: 'var(--text-2)', background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', cursor: 'pointer', textAlign: 'left', fontFamily: 'var(--font-body)', transition: 'border-color 0.2s' }}
+                  onMouseEnter={e => e.target.style.borderColor = 'var(--gold)'} onMouseLeave={e => e.target.style.borderColor = 'var(--border)'}>
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        {aiChat.map((m, i) => (
+          <div key={i} style={{ alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start', maxWidth: '88%' }}>
+            <div style={{ background: m.role === 'user' ? 'rgba(240,180,41,0.12)' : 'var(--bg-elevated)', border: `1px solid ${m.role === 'user' ? 'rgba(240,180,41,0.2)' : 'var(--border)'}`, borderRadius: m.role === 'user' ? '12px 12px 4px 12px' : '12px 12px 12px 4px', padding: '10px 13px', fontSize: 13, color: 'var(--text)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+              {m.content}
+            </div>
+          </div>
+        ))}
+        {chatLoading && (
+          <div style={{ alignSelf: 'flex-start', maxWidth: '88%' }}>
+            <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: '12px 12px 12px 4px', padding: '12px 16px', display: 'flex', gap: 6 }}>
+              <span className="spinner" style={{ width: 14, height: 14 }} />
+              <span style={{ fontSize: 12, color: 'var(--text-3)' }}>Thinking...</span>
+            </div>
+          </div>
+        )}
+        <div ref={chatEndRef} />
+      </div>
+
+      {/* Input */}
+      <div style={{ borderTop: '1px solid var(--border)', padding: '10px 12px', display: 'flex', gap: 8 }}>
+        <input value={msg} onChange={e => setMsg(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSend()}
+          placeholder="Ask about your finances..." style={{ flex: 1, background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 13, fontFamily: 'var(--font-body)', outline: 'none' }} />
+        <button onClick={handleSend} disabled={chatLoading || !msg.trim()}
+          style={{ background: 'linear-gradient(135deg, var(--gold), #d4960f)', border: 'none', borderRadius: 8, width: 36, height: 36, color: '#050810', fontSize: 15, cursor: 'pointer', fontWeight: 800, flexShrink: 0, opacity: chatLoading || !msg.trim() ? 0.4 : 1 }}>↑</button>
+      </div>
+      <div style={{ padding: '4px 12px 8px', fontSize: 10, color: 'var(--text-3)', textAlign: 'center' }}>Powered by Gemini 2.0 · Uses your real data</div>
+    </div>
+  );
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function RecommendationsPage() {
   const dispatch = useDispatch();
   const { user } = useSelector(s => s.auth);
   const { profile, loans } = useSelector(s => s.profile);
-  const { latest: score, recommendations, aiRecommendations, aiLoading } = useSelector(s => s.score);
+  const { latest: score, recommendations, aiRecommendations, aiLoading, recProgress } = useSelector(s => s.score);
   const { goals } = useSelector(s => s.goals);
   const { data: nwData } = useSelector(s => s.netWorth);
 
+  const [activeTab, setActiveTab] = useState('all');
   const [activeFilter, setActiveFilter] = useState('all');
-  const [activeSource, setActiveSource] = useState('all');
   const [activePriority, setActivePriority] = useState('all');
   const [refreshing, setRefreshing] = useState(false);
+  const [showChat, setShowChat] = useState(true);
 
   useEffect(() => {
-    dispatch(fetchLatestScore());
-    dispatch(fetchRecommendations());
-    dispatch(fetchProfile());
-    dispatch(fetchGoals());
-    dispatch(fetchNetWorth());
+    dispatch(fetchLatestScore()); dispatch(fetchRecommendations());
+    dispatch(fetchProfile()); dispatch(fetchGoals()); dispatch(fetchNetWorth());
   }, [dispatch]);
 
   useEffect(() => {
@@ -222,41 +241,23 @@ export default function RecommendationsPage() {
     }
   }, [score?.totalScore, profile?.id]);
 
+  const financialContext = useMemo(() => ({ user, score, profile: profile ? { ...profile, loans } : null, goals, netWorth: nwData }), [user, score, profile, loans, goals, nwData]);
+
   const handleRefresh = async () => {
     setRefreshing(true);
     await Promise.all([dispatch(fetchLatestScore()), dispatch(fetchRecommendations())]);
-    if (score && profile) {
-      await dispatch(fetchAIRecommendations({ user, score, profile: { ...profile, loans }, goals, netWorth: nwData }));
-    }
+    if (score && profile) await dispatch(fetchAIRecommendations(financialContext));
     setRefreshing(false);
   };
 
-  // Merge + dedupe all recommendations
-  const allRecs = useMemo(() => {
-    const ruleRecs = (recommendations || []).map(r => ({ ...r, source: 'rule' }));
-    const aiRecs   = (aiRecommendations || []).map(r => ({ ...r, source: 'gemini' }));
-    return [...aiRecs, ...ruleRecs];
-  }, [recommendations, aiRecommendations]);
-
-  // Filter
-  const filtered = useMemo(() => {
-    return allRecs.filter(r => {
-      if (activeFilter !== 'all' && r.category !== activeFilter) return false;
-      if (activeSource !== 'all' && r.source !== activeSource) return false;
-      if (activePriority !== 'all' && r.priority !== activePriority) return false;
-      return true;
-    });
-  }, [allRecs, activeFilter, activeSource, activePriority]);
-
-  // Stats
-  const metrics  = score?.metrics     ?? score ?? {};
-  const comps    = score?.components  ?? {};
+  // Metrics
+  const metrics  = score?.metrics ?? score ?? {};
+  const comps    = score?.components ?? {};
   const dtiScore       = comps.dtiScore       ?? score?.dtiScore       ?? 0;
   const savingsScore   = comps.savingsScore   ?? score?.savingsScore   ?? 0;
   const emergencyScore = comps.emergencyScore ?? score?.emergencyScore ?? 0;
   const creditScore    = comps.creditScore    ?? score?.creditScore    ?? 0;
   const expenseScore   = comps.expenseScore   ?? score?.expenseScore   ?? 0;
-
   const income       = metrics.monthlyIncome        ?? 0;
   const totalEMI     = metrics.totalMonthlyEMI      ?? 0;
   const totalExp     = metrics.totalMonthlyExpenses ?? 0;
@@ -266,207 +267,218 @@ export default function RecommendationsPage() {
   const emergencyMos = metrics.emergencyFundMonths   ?? 0;
   const disposable   = income - totalEMI - totalExp;
 
-  const criticalCount = allRecs.filter(r => r.priority === 'critical' || r.priority === 'high').length;
-  const categories = [...new Set(allRecs.map(r => r.category))];
+  // Build rec lists
+  const aiRecs = useMemo(() => (aiRecommendations || []).map(r => ({ ...r, source: 'gemini' })), [aiRecommendations]);
+  const ruleRecs = useMemo(() => (recommendations || []).map(r => ({ ...r, source: 'rule' })), [recommendations]);
+  const allRecs = useMemo(() => [...aiRecs, ...ruleRecs], [aiRecs, ruleRecs]);
 
-  const S = {
-    page: { padding: '28px 28px 60px', maxWidth: 1100, margin: '0 auto' },
-    header: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, marginBottom: 28 },
-    title: { fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 900, marginBottom: 4 },
-    subtitle: { fontSize: 14, color: 'var(--text-2)' },
-    grid2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 },
-    grid3: { display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 20 },
-    grid4: { display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10, marginBottom: 24 },
-    card: { background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16, padding: 20 },
-    sectionTitle: { fontFamily: 'var(--font-display)', fontSize: 13, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, color: 'var(--text-3)', marginBottom: 14 },
-    filterBar: { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 20 },
-    filterBtn: (active, color = 'var(--gold)') => ({
-      padding: '6px 14px', borderRadius: 8, fontSize: 12, fontWeight: 700,
-      background: active ? 'rgba(240,180,41,0.15)' : 'var(--bg-elevated)',
-      color: active ? color : 'var(--text-2)',
-      border: `1px solid ${active ? 'rgba(240,180,41,0.3)' : 'var(--border)'}`,
-      cursor: 'pointer', transition: 'all 0.15s', fontFamily: 'var(--font-body)',
-    }),
-    recList: { display: 'flex', flexDirection: 'column', gap: 12 },
+  const doneIds = new Set(Object.keys(recProgress).filter(k => recProgress[k] === 'done'));
+  const activeGoals = (goals || []).filter(g => g.status === 'active');
+
+  // Find linked goal for a rec
+  const findLinkedGoal = (rec) => {
+    if (!rec.linkedGoalCategory) return null;
+    return activeGoals.find(g => g.category === rec.linkedGoalCategory) || null;
   };
 
+  // Filter logic per tab
+  const getTabRecs = (tab) => {
+    let base = tab === 'rules' ? ruleRecs : allRecs;
+    if (tab === 'done') return allRecs.filter(r => doneIds.has(r.id || r._id));
+    base = base.filter(r => !doneIds.has(r.id || r._id));
+    if (activeFilter !== 'all') base = base.filter(r => r.category === activeFilter);
+    if (activePriority !== 'all') base = base.filter(r => r.priority === activePriority);
+    return base;
+  };
+
+  const filteredRecs = getTabRecs(activeTab);
+  const criticalCount = allRecs.filter(r => (r.priority === 'critical' || r.priority === 'high') && !doneIds.has(r.id || r._id)).length;
+  const totalProjectedImpact = aiRecs.filter(r => !doneIds.has(r.id || r._id)).reduce((s, r) => s + (r.projectedScoreImpact || 0), 0);
+  const categories = [...new Set(allRecs.map(r => r.category))];
+  const doneCount = doneIds.size;
+
+  const tabStyle = (t) => ({
+    padding: '8px 18px', borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font-body)', border: 'none', transition: 'all 0.2s',
+    background: activeTab === t ? (t === 'all' ? 'rgba(144,97,249,0.15)' : t === 'done' ? 'rgba(49,196,141,0.15)' : 'rgba(240,180,41,0.15)') : 'var(--bg-elevated)',
+    color: activeTab === t ? (t === 'all' ? '#9061F9' : t === 'done' ? '#31C48D' : 'var(--gold)') : 'var(--text-2)',
+    boxShadow: activeTab === t ? `0 0 12px ${t === 'all' ? 'rgba(144,97,249,0.15)' : 'transparent'}` : 'none'
+  });
+
+  const filterBtn = (active, color = 'var(--gold)') => ({
+    padding: '5px 12px', borderRadius: 7, fontSize: 11, fontWeight: 700, background: active ? 'rgba(240,180,41,0.12)' : 'var(--bg-elevated)',
+    color: active ? color : 'var(--text-3)', border: `1px solid ${active ? 'rgba(240,180,41,0.25)' : 'var(--border)'}`, cursor: 'pointer', fontFamily: 'var(--font-body)', transition: 'all 0.15s'
+  });
+
   return (
-    <div style={S.page}>
+    <div style={{ padding: '24px 24px 48px', maxWidth: 1300, margin: '0 auto' }}>
       {/* Header */}
-      <div style={S.header}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 14, marginBottom: 20 }}>
         <div>
-          <h1 style={S.title}>✨ AI Recommendations</h1>
-          <p style={S.subtitle}>
-            {allRecs.length} personalized insights · {criticalCount} need immediate attention
-            {aiLoading && <span style={{ color: 'var(--gold)', marginLeft: 8 }}>· Gemini analysing...</span>}
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 900, marginBottom: 4 }}>✨ AI Recommendations</h1>
+          <p style={{ fontSize: 13, color: 'var(--text-2)' }}>
+            {allRecs.length} insights · {criticalCount} urgent · {doneCount} completed
+            {aiLoading && <span style={{ color: 'var(--gold)', marginLeft: 8 }}>· Analysing...</span>}
           </p>
         </div>
-        <button onClick={handleRefresh} disabled={refreshing || aiLoading} className="btn btn-secondary btn-sm">
-          {refreshing ? <><span className="spinner" />Refreshing...</> : '↻ Refresh'}
-        </button>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <button onClick={() => setShowChat(c => !c)} style={{ padding: '7px 14px', borderRadius: 8, fontSize: 12, fontWeight: 700, background: showChat ? 'rgba(144,97,249,0.15)' : 'var(--bg-elevated)', color: showChat ? '#9061F9' : 'var(--text-2)', border: `1px solid ${showChat ? 'rgba(144,97,249,0.25)' : 'var(--border)'}`, cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
+            {showChat ? '✨ Hide Chat' : '✨ AI Chat'}
+          </button>
+          <button onClick={handleRefresh} disabled={refreshing || aiLoading} className="btn btn-secondary btn-sm">
+            {refreshing ? <><span className="spinner" />Refreshing...</> : '↻ Refresh'}
+          </button>
+        </div>
       </div>
 
+      {/* Score + Metrics Bar */}
       {score && (
-        <>
-          {/* Score Overview */}
-          <div style={{ ...S.card, marginBottom: 20 }}>
-            <div style={S.sectionTitle}>Financial Health Overview</div>
-            <div style={{ display: 'flex', gap: 24, alignItems: 'center', flexWrap: 'wrap' }}>
-              <ScoreRing score={score.totalScore ?? 0} grade={score.grade ?? 'N/A'} />
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10, minWidth: 220 }}>
-                <ComponentMeter label="Debt-to-Income"  value={dtiScore}       icon="💳" />
-                <ComponentMeter label="Savings Rate"    value={savingsScore}   icon="🏦" />
-                <ComponentMeter label="Emergency Fund"  value={emergencyScore} icon="🛡️" />
-                <ComponentMeter label="Credit Health"   value={creditScore}    icon="📊" />
-                <ComponentMeter label="Expense Control" value={expenseScore}   icon="🧾" />
+        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 20px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
+          <ScoreRing score={score.totalScore ?? 0} grade={score.grade ?? 'N/A'} size={80} />
+          <div style={{ display: 'flex', gap: 10, flex: 1, flexWrap: 'wrap', minWidth: 0 }}>
+            {[
+              { label: 'Income', value: fmt(income), color: 'var(--text)' },
+              { label: 'Disposable', value: fmt(disposable), color: disposable > 0 ? '#0DCFAA' : '#F05252' },
+              { label: 'DTI', value: `${dtiRatio.toFixed(1)}%`, color: dtiRatio > 40 ? '#F05252' : '#0DCFAA' },
+              { label: 'Emergency', value: `${emergencyMos.toFixed(1)}mo`, color: emergencyMos < 3 ? '#FF8A4C' : '#0DCFAA' },
+              { label: 'Savings', value: `${savingsRate.toFixed(1)}%`, color: savingsRate < 10 ? '#F05252' : savingsRate < 20 ? '#F0B429' : '#0DCFAA' },
+              { label: 'Credit', value: `${creditUtil.toFixed(1)}%`, color: creditUtil > 30 ? '#F05252' : '#0DCFAA' },
+            ].map(m => (
+              <div key={m.label} style={{ background: 'var(--bg-elevated)', borderRadius: 9, padding: '8px 14px', minWidth: 90 }}>
+                <div style={{ fontSize: 10, color: 'var(--text-3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 2 }}>{m.label}</div>
+                <div style={{ fontSize: 15, fontWeight: 800, fontFamily: 'var(--font-display)', color: m.color }}>{m.value}</div>
               </div>
+            ))}
+          </div>
+          {totalProjectedImpact > 0 && (
+            <div style={{ background: 'rgba(240,180,41,0.1)', border: '1px solid rgba(240,180,41,0.2)', borderRadius: 10, padding: '10px 16px', textAlign: 'center', flexShrink: 0 }}>
+              <div style={{ fontSize: 10, color: 'var(--gold)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 2 }}>Projected Impact</div>
+              <div style={{ fontSize: 20, fontWeight: 900, fontFamily: 'var(--font-display)', color: 'var(--gold)' }}>+{totalProjectedImpact} pts</div>
+              <div style={{ fontSize: 10, color: 'var(--text-3)' }}>if all AI recs actioned</div>
             </div>
-          </div>
-
-          {/* Key Metrics */}
-          <div style={S.grid4}>
-            <MetricChip label="Monthly Income"    value={fmt(income)}      sub="gross monthly" />
-            <MetricChip label="Disposable Income" value={fmt(disposable)}  sub="after EMI + expenses" color={disposable > 0 ? '#0DCFAA' : '#F05252'} />
-            <MetricChip label="Debt-to-Income"    value={`${dtiRatio.toFixed(1)}%`} sub={dtiRatio > 40 ? '⚠️ Above safe limit' : '✅ Healthy'} color={dtiRatio > 40 ? '#F05252' : '#0DCFAA'} />
-            <MetricChip label="Emergency Fund"    value={`${emergencyMos.toFixed(1)} mo`} sub={emergencyMos < 3 ? '⚠️ Below 3 months' : '✅ Good coverage'} color={emergencyMos < 3 ? '#FF8A4C' : '#0DCFAA'} />
-            <MetricChip label="Savings Rate"      value={`${savingsRate.toFixed(1)}%`} sub={savingsRate < 20 ? '📈 Target: 20%' : '✅ On track'} color={savingsRate < 10 ? '#F05252' : savingsRate < 20 ? '#F0B429' : '#0DCFAA'} />
-            <MetricChip label="Monthly EMI"       value={fmt(totalEMI)}    sub={`${dtiRatio.toFixed(1)}% of income`} />
-            <MetricChip label="Monthly Expenses"  value={fmt(totalExp)}    sub={`${income > 0 ? ((totalExp/income)*100).toFixed(1) : 0}% of income`} />
-            <MetricChip label="Credit Utilization" value={`${creditUtil.toFixed(1)}%`} sub={creditUtil > 30 ? '⚠️ Above 30%' : '✅ Healthy'} color={creditUtil > 50 ? '#F05252' : creditUtil > 30 ? '#F0B429' : '#0DCFAA'} />
-          </div>
-
-          {/* Critical Alerts Banner */}
-          {criticalCount > 0 && (
-            <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
-              style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 12, padding: '14px 18px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span style={{ fontSize: 20 }}>🚨</span>
-              <div>
-                <div style={{ fontWeight: 800, color: '#EF4444', fontSize: 14, marginBottom: 2 }}>
-                  {criticalCount} High-Priority Issue{criticalCount > 1 ? 's' : ''} Detected
-                </div>
-                <div style={{ fontSize: 13, color: 'var(--text-2)' }}>
-                  Address these first — they have the biggest impact on your financial health.
-                </div>
-              </div>
-            </motion.div>
           )}
-        </>
+        </div>
       )}
 
-      {/* Filters */}
-      <div style={{ ...S.card, marginBottom: 20, padding: '16px 18px' }}>
-        <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
-          {/* Source filter */}
+      {/* Critical Alert */}
+      {criticalCount > 0 && (
+        <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
+          style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 11, padding: '12px 16px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 18 }}>🚨</span>
           <div>
-            <div style={{ fontSize: 10, color: 'var(--text-3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 }}>Source</div>
-            <div style={{ display: 'flex', gap: 6 }}>
-              {[['all','All'],['gemini','✨ AI'],['rule','Rule-based']].map(([v, l]) => (
-                <button key={v} style={S.filterBtn(activeSource === v)} onClick={() => setActiveSource(v)}>{l}</button>
-              ))}
-            </div>
+            <div style={{ fontWeight: 800, color: '#EF4444', fontSize: 13 }}>{criticalCount} High-Priority Issue{criticalCount > 1 ? 's' : ''}</div>
+            <div style={{ fontSize: 12, color: 'var(--text-2)' }}>Address these first for the biggest impact.</div>
           </div>
+        </motion.div>
+      )}
+
+      {/* 3-column layout */}
+      <div style={{ display: 'grid', gridTemplateColumns: showChat ? '180px 1fr 280px' : '180px 1fr', gap: 16, alignItems: 'start' }}>
+
+        {/* LEFT SIDEBAR — Filters */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14, position: 'sticky', top: 20 }}>
           {/* Priority filter */}
-          <div>
-            <div style={{ fontSize: 10, color: 'var(--text-3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 }}>Priority</div>
-            <div style={{ display: 'flex', gap: 6 }}>
-              {[['all','All'],['critical','Critical'],['high','High'],['medium','Medium'],['low','Low']].map(([v, l]) => (
-                <button key={v} style={S.filterBtn(activePriority === v, PRIORITY_META[v]?.color)} onClick={() => setActivePriority(v)}>{l}</button>
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '14px' }}>
+            <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 }}>Priority</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              {[['all', 'All', 'var(--text)'], ['critical', '🔴 Critical', '#EF4444'], ['high', '🟠 High', '#F0B429'], ['medium', '🔵 Medium', '#4F8EF7'], ['low', '🟢 Low', '#31C48D']].map(([v, l, c]) => (
+                <button key={v} style={filterBtn(activePriority === v, c)} onClick={() => setActivePriority(v)}>{l}</button>
               ))}
             </div>
           </div>
           {/* Category filter */}
-          <div>
-            <div style={{ fontSize: 10, color: 'var(--text-3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 }}>Category</div>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              <button style={S.filterBtn(activeFilter === 'all')} onClick={() => setActiveFilter('all')}>All</button>
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '14px' }}>
+            <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 }}>Category</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              <button style={filterBtn(activeFilter === 'all')} onClick={() => setActiveFilter('all')}>All</button>
               {categories.map(cat => (
-                <button key={cat} style={S.filterBtn(activeFilter === cat, CATEGORY_META[cat]?.color)}
-                  onClick={() => setActiveFilter(cat)}>
+                <button key={cat} style={filterBtn(activeFilter === cat, CATEGORY_META[cat]?.color)} onClick={() => setActiveFilter(cat)}>
                   {CATEGORY_META[cat]?.icon} {CATEGORY_META[cat]?.label ?? cat}
                 </button>
               ))}
             </div>
           </div>
+          {/* Goals */}
+          {activeGoals.length > 0 && (
+            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '14px' }}>
+              <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 }}>Your Goals</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {activeGoals.slice(0, 3).map(g => {
+                  const p = Math.min(100, Math.round((g.currentAmount / g.targetAmount) * 100));
+                  return (
+                    <div key={g.id} style={{ padding: '8px 10px', background: 'var(--bg-elevated)', borderRadius: 8 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>{g.icon || '🎯'} {g.title}</div>
+                      <div style={{ height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 2, overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${p}%`, background: 'var(--gold)', borderRadius: 2 }} />
+                      </div>
+                      <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 3 }}>{p}% · {fmt(g.currentAmount)}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
-      </div>
 
-      {/* Results count */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-        <span style={{ fontSize: 13, color: 'var(--text-3)' }}>
-          Showing {filtered.length} of {allRecs.length} recommendations
-        </span>
-        {(activeFilter !== 'all' || activeSource !== 'all' || activePriority !== 'all') && (
-          <button style={{ fontSize: 12, color: 'var(--gold)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)' }}
-            onClick={() => { setActiveFilter('all'); setActiveSource('all'); setActivePriority('all'); }}>
-            Clear filters ×
-          </button>
-        )}
-      </div>
-
-      {/* AI Loading skeleton */}
-      {aiLoading && (
-        <div style={{ ...S.card, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 14 }}>
-          <span className="spinner" style={{ width: 20, height: 20 }} />
-          <div>
-            <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 3 }}>Gemini is analysing your finances...</div>
-            <div style={{ fontSize: 12, color: 'var(--text-3)' }}>Generating personalised AI recommendations with calculations</div>
+        {/* CENTER — Tabs + Feed */}
+        <div>
+          {/* Tabs */}
+          <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+            <button style={tabStyle('all')} onClick={() => setActiveTab('all')}>✨ All Insights ({allRecs.filter(r => !doneIds.has(r.id || r._id)).length})</button>
+            <button style={tabStyle('rules')} onClick={() => setActiveTab('rules')}>📋 Rule-Based ({ruleRecs.filter(r => !doneIds.has(r.id || r._id)).length})</button>
+            <button style={tabStyle('done')} onClick={() => setActiveTab('done')}>✅ Completed ({doneCount})</button>
           </div>
-        </div>
-      )}
 
-      {/* Recommendation List */}
-      {filtered.length === 0 && !aiLoading ? (
-        <div style={{ ...S.card, textAlign: 'center', padding: 48 }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>🎉</div>
-          <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 800, marginBottom: 8 }}>No recommendations match your filters</div>
-          <div style={{ fontSize: 14, color: 'var(--text-2)' }}>Try changing your filters or complete your financial profile for personalised advice.</div>
-        </div>
-      ) : (
-        <div style={S.recList}>
-          {/* AI Section */}
-          {(activeSource === 'all' || activeSource === 'gemini') && aiRecommendations.length > 0 && (
-            <>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '8px 0 4px' }}>
-                <div style={{ height: 1, flex: 1, background: 'var(--border)' }} />
-                <span style={{ fontSize: 11, fontWeight: 800, color: '#9061F9', textTransform: 'uppercase', letterSpacing: 1, whiteSpace: 'nowrap' }}>
-                  ✨ AI-Powered ({aiRecommendations.filter(r =>
-                    (activeFilter === 'all' || r.category === activeFilter) &&
-                    (activePriority === 'all' || r.priority === activePriority)
-                  ).length})
-                </span>
-                <div style={{ height: 1, flex: 1, background: 'var(--border)' }} />
+          {/* Count */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+            <span style={{ fontSize: 12, color: 'var(--text-3)' }}>Showing {filteredRecs.length} recommendations</span>
+            {(activeFilter !== 'all' || activePriority !== 'all') && (
+              <button style={{ fontSize: 11, color: 'var(--gold)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)' }}
+                onClick={() => { setActiveFilter('all'); setActivePriority('all'); }}>Clear filters ×</button>
+            )}
+          </div>
+
+          {/* Loading */}
+          {aiLoading && activeTab === 'all' && aiRecs.length === 0 && (
+            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span className="spinner" style={{ width: 18, height: 18 }} />
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 2 }}>Gemini is analysing your finances...</div>
+                <div style={{ fontSize: 11, color: 'var(--text-3)' }}>Generating personalised recommendations with calculations</div>
               </div>
-              {aiRecommendations
-                .filter(r => (activeFilter === 'all' || r.category === activeFilter) && (activePriority === 'all' || r.priority === activePriority))
-                .map((rec, i) => <RecCard key={rec.id || i} rec={rec} index={i} isAI />)}
-            </>
+            </div>
           )}
 
-          {/* Rule-based Section */}
-          {(activeSource === 'all' || activeSource === 'rule') && recommendations.length > 0 && (
-            <>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '16px 0 4px' }}>
-                <div style={{ height: 1, flex: 1, background: 'var(--border)' }} />
-                <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: 1, whiteSpace: 'nowrap' }}>
-                  Rule-based ({recommendations.filter(r =>
-                    (activeFilter === 'all' || r.category === activeFilter) &&
-                    (activePriority === 'all' || r.priority === activePriority)
-                  ).length})
-                </span>
-                <div style={{ height: 1, flex: 1, background: 'var(--border)' }} />
+          {/* Feed */}
+          {filteredRecs.length === 0 && !(aiLoading && activeTab === 'all') ? (
+            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, textAlign: 'center', padding: '40px 20px' }}>
+              <div style={{ fontSize: 36, marginBottom: 10 }}>{activeTab === 'done' ? '🎯' : '🎉'}</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 800, marginBottom: 6 }}>
+                {activeTab === 'done' ? 'No completed items yet' : 'No recommendations match'}
               </div>
-              {recommendations
-                .filter(r => (activeFilter === 'all' || r.category === activeFilter) && (activePriority === 'all' || r.priority === activePriority))
-                .map((rec, i) => <RecCard key={rec.id || rec._id || i} rec={rec} index={i} isAI={false} />)}
-            </>
+              <div style={{ fontSize: 13, color: 'var(--text-2)' }}>
+                {activeTab === 'done' ? 'Mark recommendations as done to track your progress here.' : 'Try changing filters or switch tabs.'}
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {filteredRecs.map((rec, i) => (
+                <RecCard key={rec.id || rec._id || i} rec={rec} index={i} isAI={rec.source === 'gemini'}
+                  isDone={doneIds.has(rec.id || rec._id)}
+                  onToggleDone={() => doneIds.has(rec.id || rec._id) ? dispatch(unmarkRecDone(rec.id || rec._id)) : dispatch(markRecDone(rec.id || rec._id))}
+                  linkedGoal={findLinkedGoal(rec)} />
+              ))}
+            </div>
           )}
         </div>
-      )}
 
-      {/* Footer note */}
-      <div style={{ marginTop: 32, padding: '14px 18px', background: 'var(--bg-elevated)', borderRadius: 10, border: '1px solid var(--border)' }}>
-        <p style={{ fontSize: 12, color: 'var(--text-3)', lineHeight: 1.7 }}>
-          <strong style={{ color: 'var(--text-2)' }}>Disclaimer:</strong> These recommendations are generated by AI and rule-based algorithms based on your financial data. They are for informational purposes only and do not constitute professional financial advice. Please consult a SEBI-registered financial advisor before making major financial decisions.
+        {/* RIGHT — AI Chat */}
+        {showChat && <AIChatPanel financialContext={financialContext} />}
+      </div>
+
+      {/* Footer */}
+      <div style={{ marginTop: 28, padding: '12px 16px', background: 'var(--bg-elevated)', borderRadius: 10, border: '1px solid var(--border)' }}>
+        <p style={{ fontSize: 11, color: 'var(--text-3)', lineHeight: 1.7 }}>
+          <strong style={{ color: 'var(--text-2)' }}>Disclaimer:</strong> Recommendations are generated by AI and rule-based algorithms for informational purposes only. Consult a SEBI-registered financial advisor before making major decisions.
         </p>
       </div>
     </div>

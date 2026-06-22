@@ -33,7 +33,8 @@ const HISTORICAL_FALLBACK = [
   { month: '2025-09', rate: 3.83 }, { month: '2025-10', rate: 0.25 },
   { month: '2025-11', rate: 0.71 }, { month: '2025-12', rate: 1.33 },
   { month: '2026-01', rate: 2.75 }, { month: '2026-02', rate: 3.61 },
-  { month: '2026-03', rate: 3.34 },
+  { month: '2026-03', rate: 3.34 }, { month: '2026-04', rate: 3.09 },
+  { month: '2026-05', rate: 3.25 }, { month: '2026-06', rate: 3.40 },
 ];
 
 const fetchJSON = (url) =>
@@ -93,27 +94,46 @@ const fetchFromDataGovIn = async () => {
 };
 
 /**
+ * Helper: compare month strings like "2026-03" > "2024-12"
+ * Returns true if newMonth is newer than the current cache month.
+ */
+const isNewerMonth = (newMonth, currentMonth) => {
+  if (!currentMonth) return true;
+  return String(newMonth).localeCompare(String(currentMonth)) > 0;
+};
+
+/**
  * Background cache-warmer: tries external APIs and updates cache if successful.
  * Runs non-blocking so it never delays the response.
+ * Only updates cache if the fetched data is NEWER than what's already cached.
  */
 const warmCacheInBackground = () => {
   // Try data.gov.in first (monthly, most accurate)
   fetchFromDataGovIn()
     .then(records => {
       const latest = records[0];
-      const historical = records.slice(0, 13).reverse();
-      cache = { rate: latest.rate, month: latest.month, fetchedAt: Date.now(), historical };
-      console.log('[InflationService] Background: data.gov.in updated cache to', latest.rate, latest.month);
+      if (isNewerMonth(latest.month, cache.month)) {
+        const historical = records.slice(0, 13).reverse();
+        cache = { rate: latest.rate, month: latest.month, fetchedAt: Date.now(), historical };
+        console.log('[InflationService] Background: data.gov.in updated cache to', latest.rate, latest.month);
+      } else {
+        console.log('[InflationService] Background: data.gov.in data (' + latest.month + ') is not newer than cache (' + cache.month + '), skipping.');
+      }
     })
-    .catch(() => {
-      // Fall back to World Bank (annual)
+    .catch((e) => {
+      console.warn('[InflationService] Background: data.gov.in failed:', e.message);
+      // Fall back to World Bank (annual) — only update if newer than current cache
       fetchFromWorldBank()
         .then(wb => {
-          const blended = [...HISTORICAL_FALLBACK.slice(-12), { month: wb.month, rate: wb.rate }];
-          cache = { rate: wb.rate, month: wb.month, fetchedAt: Date.now(), historical: blended.slice(-13) };
-          console.log('[InflationService] Background: World Bank updated cache to', wb.rate, wb.month);
+          if (isNewerMonth(wb.month, cache.month)) {
+            const blended = [...HISTORICAL_FALLBACK.slice(-12), { month: wb.month, rate: wb.rate }];
+            cache = { rate: wb.rate, month: wb.month, fetchedAt: Date.now(), historical: blended.slice(-13) };
+            console.log('[InflationService] Background: World Bank updated cache to', wb.rate, wb.month);
+          } else {
+            console.log('[InflationService] Background: World Bank data (' + wb.month + ') is not newer than cache (' + cache.month + '), skipping.');
+          }
         })
-        .catch(e => console.warn('[InflationService] Background: all sources failed:', e.message));
+        .catch(e2 => console.warn('[InflationService] Background: all sources failed:', e2.message));
     });
 };
 

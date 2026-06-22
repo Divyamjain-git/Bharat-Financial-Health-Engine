@@ -1,10 +1,10 @@
 /**
- * Gemini AI Service — Elite Personalised Financial Recommendations
- * Deep financial analysis with India-specific advice and precise calculations.
+ * Gemini AI Service — Elite Personalised Financial Recommendations + Chat
+ * All API calls are proxied through the backend to keep API keys secure.
+ * Prompt-building logic stays client-side (uses only user's own data).
  */
 
-const GEMINI_API_URL =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+import api from './api';
 
 const fmt  = (n) => n != null ? `₹${Number(n).toLocaleString('en-IN')}` : 'N/A';
 const pct  = (n) => n != null ? `${Number(n).toFixed(1)}%` : 'N/A';
@@ -114,6 +114,8 @@ function buildPrompt({ user, score: sc, profile, goals, netWorth }) {
     { name: 'Expense Control', s: expenseScore },
   ].sort((a, b) => a.s - b.s).slice(0, 3).map(c => `${c.name} (${c.s}/100)`).join(', ');
 
+  const activeGoalCategories = (goals || []).filter(g => g.status === 'active').map(g => g.category).join(', ') || 'none';
+
   return `You are India's top-rated SEBI-registered financial planner with 25 years of experience advising Indian salaried and self-employed professionals. You have deep expertise in Indian mutual funds, CIBIL scores, tax laws (80C/80CCD/80D), and behavioral finance.
 
 TASK: Analyse this person's COMPLETE financial snapshot and generate exactly 8 hyper-personalized recommendations. Every recommendation MUST cite their actual rupee figures — zero generic advice allowed.
@@ -149,7 +151,7 @@ ${buildLoanBreakdown(loans, income)}
 CREDIT CARDS:
 ${buildCreditCards(cards)}
 
-GOALS:
+GOALS (active: ${activeGoalCategories}):
 ${buildGoals(goals)}
 
 NET WORTH:
@@ -166,6 +168,9 @@ RULES FOR EACH RECOMMENDATION:
 6. impact = single line with concrete ₹ or % benefit.
 7. calculation = show the actual math (SIP growth, interest saved, tax saved, etc.)
 8. whyPeopleAvoid = brief psychological barrier + one-line trick to overcome it.
+9. projectedScoreImpact = integer 1-15 estimating how many points their health score would improve if they act on this rec.
+10. timeToComplete = how long to set up: "15 min" | "1 hour" | "1 day" | "1 week" | "ongoing".
+11. linkedGoalCategory = if this rec directly helps an active goal, put its category (e.g. "home", "retirement", "education"), otherwise null.
 
 PRIORITY:
   "critical" → score < 35 OR dtiRatio > 60% OR emergencyMos < 1 OR creditUtil > 75%
@@ -183,52 +188,76 @@ OUTPUT: ONLY a raw JSON array, no markdown, no backticks, no explanation:
     "impact": "Single line quantifying the benefit. E.g: Save ₹46,800 in taxes this year",
     "whyPeopleAvoid": "One sentence on the barrier + trick to start anyway.",
     "priority": "critical | high | medium | low",
-    "category": "debt | savings | emergency | credit | investment | expense | tax | insurance | goal"
+    "category": "debt | savings | emergency | credit | investment | expense | tax | insurance | goal",
+    "projectedScoreImpact": 8,
+    "timeToComplete": "15 min",
+    "linkedGoalCategory": "home | retirement | education | travel | emergency | other | null"
   }
 ]`;
 }
 
+// ─── Fetch Recommendations (via backend proxy) ───────────────────────────────
 export async function fetchGeminiRecommendations(financialContext) {
-  const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
-  if (!apiKey) { console.warn('[Gemini] API key not set.'); return []; }
+  try {
+    const prompt = buildPrompt(financialContext);
+    const response = await api.post('/ai/recommendations', { prompt });
+    return response.data.data || [];
+  } catch (err) {
+    console.warn('[Gemini] Failed to fetch recommendations:', err.message);
+    return [];
+  }
+}
 
-  const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ role: 'user', parts: [{ text: buildPrompt(financialContext) }] }],
-      generationConfig: { temperature: 0.25, maxOutputTokens: 3500, topP: 0.9, topK: 40 },
-      safetySettings: [
-        { category: 'HARM_CATEGORY_HARASSMENT',        threshold: 'BLOCK_NONE' },
-        { category: 'HARM_CATEGORY_HATE_SPEECH',       threshold: 'BLOCK_NONE' },
-        { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
-        { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
-      ],
-    }),
-  });
+// ─── AI Chat (via backend proxy) ─────────────────────────────────────────────
+/**
+ * Send a follow-up chat message via the backend AI proxy.
+ * @param {string} message - The user's question
+ * @param {object} financialContext - { user, score, profile, goals, netWorth }
+ * @param {Array<{role: 'user'|'ai', content: string}>} history - Conversation history
+ * @returns {Promise<string>} - AI response text
+ */
+export async function fetchGeminiChat(message, financialContext, history = []) {
+  const { score: sc, profile, goals } = financialContext || {};
+  const metrics    = sc?.metrics ?? sc ?? {};
+  const income     = metrics.monthlyIncome ?? 0;
+  const totalEMI   = metrics.totalMonthlyEMI ?? 0;
+  const totalExp   = metrics.totalMonthlyExpenses ?? 0;
+  const savingsRate = metrics.savingsRate ?? 0;
+  const dtiRatio   = metrics.dtiRatio ?? 0;
+  const creditUtil = metrics.creditUtilization ?? 0;
+  const emergencyMos = metrics.emergencyFundMonths ?? 0;
+  const totalScore = sc?.totalScore ?? 0;
+  const grade      = sc?.grade ?? 'N/A';
+  const disposable = income - totalEMI - totalExp;
+  const loans      = profile?.loans ?? [];
+  const activeGoals = (goals || []).filter(g => g.status === 'active');
 
-  if (!response.ok) throw new Error(`Gemini ${response.status}: ${await response.text()}`);
+  const contextSummary = `User's Financial Snapshot:
+- Health Score: ${totalScore}/100 (${grade})
+- Monthly Income: ${fmt(income)} | EMIs: ${fmt(totalEMI)} (DTI: ${pct(dtiRatio)})
+- Monthly Expenses: ${fmt(totalExp)} | Disposable: ${fmt(disposable)}
+- Savings Rate: ${pct(savingsRate)} | Emergency Fund: ${emergencyMos.toFixed(1)} months
+- Credit Utilization: ${pct(creditUtil)}
+- Active Loans: ${loans.length > 0 ? loans.map(l => `${l.loanType || 'Loan'} @ ${l.interestRate}% (EMI: ${fmt(l.monthlyEMI)})`).join(', ') : 'None'}
+- Active Goals: ${activeGoals.length > 0 ? activeGoals.map(g => `"${g.title}" — ${Math.round((g.currentAmount / g.targetAmount) * 100)}% done`).join(', ') : 'None'}`;
 
-  const data = await response.json();
-  const raw  = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
-  const cleaned = raw.replace(/```json\n?|```\n?/g, '').trim();
+  const systemTurn = `You are Bharat's smartest SEBI-registered financial advisor. You have the user's real financial data below. Answer questions using their actual ₹ numbers. Be concise (max 120 words), practical, warm, and India-specific. Reference specific apps/banks/schemes by name. Format key numbers clearly.\n\n${contextSummary}`;
 
-  let recs;
-  try { recs = JSON.parse(cleaned); }
-  catch { const m = cleaned.match(/\[[\s\S]*\]/); recs = m ? JSON.parse(m[0]) : []; }
+  const messages = [
+    { role: 'system', content: systemTurn },
+    { role: 'assistant', content: `Got it — I have your complete financial profile. I can see your score is ${totalScore}/100 with ${fmt(income)} monthly income and ${fmt(disposable)} in disposable income. Ask me anything about your finances!` },
+    ...history.map(h => ({
+      role: h.role === 'ai' ? 'assistant' : 'user',
+      content: h.content
+    })),
+    { role: 'user', content: message }
+  ];
 
-  if (!Array.isArray(recs)) return [];
-
-  return recs.map((rec, i) => ({
-    id: `gemini-${i}-${Date.now()}`, _id: `gemini-${i}-${Date.now()}`,
-    title: rec.title ?? 'Recommendation',
-    description: rec.description ?? '',
-    actionStep: rec.actionStep ?? '',
-    calculation: rec.calculation ?? '',
-    impact: rec.impact ?? '',
-    whyPeopleAvoid: rec.whyPeopleAvoid ?? '',
-    priority: rec.priority ?? 'medium',
-    category: rec.category ?? 'savings',
-    source: 'gemini', isRead: false, isDismissed: false,
-  }));
+  try {
+    const response = await api.post('/ai/chat', { messages });
+    return response.data.data.reply;
+  } catch (err) {
+    console.error('[AI Chat] Error:', err.message);
+    return "Sorry, I couldn't connect to the AI right now. Please try again.";
+  }
 }

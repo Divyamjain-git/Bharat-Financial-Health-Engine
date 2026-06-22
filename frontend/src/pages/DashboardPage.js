@@ -10,6 +10,7 @@ import { fetchNetWorth } from '../store/slices/netWorthSlice';
 import { fetchAlerts } from '../store/slices/alertsSlice';
 import { StatCard, SectionCard, ProgressBar, EmptyState } from '../components/ui';
 import { formatINR, getScoreColor } from '../utils/currency';
+import RecommendationPanel from '../components/dashboard/RecommendationPanel';
 
 const COLORS = ['#F0B429','#0DCFAA','#4F8EF7','#F05252','#9061F9','#FF8A4C','#31C48D','#FB923C'];
 
@@ -254,79 +255,8 @@ export default function DashboardPage() {
             </motion.div>
           </div>
 
-          {/* AI Recommendations */}
-          {(aiLoading || aiRecommendations.length > 0) && (
-            <motion.div initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} transition={{delay:0.28}} className="card">
-              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
-                <div style={{ fontFamily:'var(--font-display)', fontSize:15, fontWeight:800 }}>
-                  ✨ AI Recommendations
-                  {!aiLoading && aiRecommendations.length > 0 && (
-                    <span style={{ marginLeft:6, background:'var(--purple)', color:'white', borderRadius:10, padding:'1px 7px', fontSize:11, fontWeight:800 }}>{aiRecommendations.length}</span>
-                  )}
-                </div>
-                <span style={{ fontSize:11, color:'var(--text-3)', background:'var(--bg-elevated)', borderRadius:6, padding:'3px 8px' }}>Powered by Gemini</span>
-              </div>
-
-              {aiLoading && (
-                <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-                  {[1,2,3].map(i => (
-                    <div key={i} style={{ borderRadius:9, padding:'14px', background:'var(--bg-elevated)', display:'flex', flexDirection:'column', gap:8 }}>
-                      <div className="skeleton" style={{ height:14, width:'60%', borderRadius:4 }}/>
-                      <div className="skeleton" style={{ height:11, width:'90%', borderRadius:4 }}/>
-                      <div className="skeleton" style={{ height:11, width:'75%', borderRadius:4 }}/>
-                    </div>
-                  ))}
-                  <div style={{ fontSize:12, color:'var(--text-3)', textAlign:'center', marginTop:4 }}>Gemini is analysing your finances…</div>
-                </div>
-              )}
-
-              {!aiLoading && aiRecommendations.length > 0 && (
-                <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-                  {aiRecommendations.map((rec, i) => {
-                    const pMap = {
-                      high:   ['var(--red-dim)',   'var(--red)'],
-                      medium: ['var(--gold-dim)',  'var(--gold)'],
-                      low:    ['var(--green-dim)', 'var(--green)'],
-                    };
-                    const [bg, c] = pMap[rec.priority] || pMap.medium;
-                    const catIcons = { savings:'💰', debt:'🏦', emergency:'🛡️', credit:'💳', investment:'📈', expense:'✂️' };
-                    return (
-                      <motion.div key={rec._id} initial={{opacity:0,x:-8}} animate={{opacity:1,x:0}} transition={{delay:i*0.06}}
-                        style={{ background:bg, borderRadius:9, padding:'12px 14px', border:`1px solid ${c}22`, position:'relative' }}>
-                        <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:4 }}>
-                          <span style={{ fontSize:14 }}>{catIcons[rec.category] || '💡'}</span>
-                          <span style={{ fontSize:13, fontWeight:700, color:c }}>{rec.title}</span>
-                          <span style={{ marginLeft:'auto', fontSize:10, fontWeight:700, color:c, background:c+'22', borderRadius:6, padding:'1px 6px', textTransform:'uppercase' }}>{rec.priority}</span>
-                        </div>
-                        <div style={{ fontSize:12, color:'var(--text-2)', lineHeight:1.6, paddingLeft:20 }}>{rec.description}</div>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-              )}
-            </motion.div>
-          )}
-
-          {/* Fallback: backend recommendations if Gemini not configured */}
-          {!aiLoading && aiRecommendations.length === 0 && recommendations.length > 0 && (
-            <motion.div initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} transition={{delay:0.28}} className="card">
-              <div style={{ fontFamily:'var(--font-display)', fontSize:15, fontWeight:800, marginBottom:14 }}>
-                💡 Recommendations <span style={{ marginLeft:6, background:'var(--red)', color:'white', borderRadius:10, padding:'1px 7px', fontSize:11, fontWeight:800 }}>{recommendations.length}</span>
-              </div>
-              <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-                {recommendations.slice(0,3).map(rec=>{
-                  const pMap={high:['var(--red-dim)','var(--red)'],medium:['var(--gold-dim)','var(--gold)'],low:['var(--green-dim)','var(--green)']};
-                  const [bg,c]=pMap[rec.priority]||pMap.medium;
-                  return (
-                    <div key={rec._id} style={{ background:bg, borderRadius:9, padding:'11px 14px', border:`1px solid ${c}22` }}>
-                      <div style={{ fontSize:13, fontWeight:700, color:c, marginBottom:3 }}>{rec.title}</div>
-                      <div style={{ fontSize:12, color:'var(--text-2)' }}>{rec.description}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            </motion.div>
-          )}
+          {/* Recommendations Panel */}
+          <RecommendationPanel aiRecommendations={aiRecommendations} recommendations={recommendations} aiLoading={aiLoading} />
         </div>
       </div>
     </div>

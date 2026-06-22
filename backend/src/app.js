@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config(); // Loaded env v2
 const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
@@ -9,9 +9,15 @@ const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 
+app.set('trust proxy', 1);
 app.use(helmet());
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 200, message: { success: false, message: 'Too many requests.' } }));
-app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:3000', credentials: true }));
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production'
+    ? process.env.FRONTEND_URL
+    : (process.env.FRONTEND_URL || 'http://localhost:3000'),
+  credentials: true
+}));
 app.use(express.json({ limit: '10kb' }));
 if (process.env.NODE_ENV === 'development') app.use(morgan('dev'));
 
@@ -33,6 +39,7 @@ app.use('/api/v1/simulation', require('./routes/simulation'));
 // Fix: import alertsRouter directly (was using destructuring from a named export)
 app.use('/api/v1/alerts', require('./routes/alerts'));
 app.use('/api/v1/inflation', require('./routes/inflation'));
+app.use('/api/v1/ai', require('./routes/ai'));
 
 app.use('*', (req, res) => res.status(404).json({ success: false, message: `Route ${req.originalUrl} not found` }));
 app.use(errorHandler);

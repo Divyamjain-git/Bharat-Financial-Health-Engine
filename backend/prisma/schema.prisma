@@ -241,18 +241,20 @@ model Alert {
 }
 
 model Recommendation {
-  id          Int      @id @default(autoincrement())
-  userId      Int
-  user        User     @relation(fields: [userId], references: [id])
-  scoreId     Int?
-  score       Score?   @relation(fields: [scoreId], references: [id])
-  category    String
-  priority    String
-  title       String
-  description String
-  actionStep  String?
-  isRead      Boolean  @default(false)
-  isDismissed Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                   Int      @id @default(autoincrement())
+  userId               Int
+  user                 User     @relation(fields: [userId], references: [id])
+  scoreId              Int?
+  score                Score?   @relation(fields: [scoreId], references: [id])
+  category             String
+  priority             String
+  title                String
+  description          String
+  actionStep           String?
+  projectedScoreImpact Int?
+  timeToComplete       String?
+  isRead               Boolean  @default(false)
+  isDismissed          Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 }

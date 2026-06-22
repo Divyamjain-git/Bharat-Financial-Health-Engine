@@ -29,9 +29,14 @@ const errorHandler = (err, req, res, next) => {
     console.error('Error:', err);
   }
 
+  // In production, don't leak internal error messages for 500s
+  const safeMessage = (process.env.NODE_ENV === 'production' && statusCode === 500)
+    ? 'Internal Server Error'
+    : message;
+
   res.status(statusCode).json({
     success: false,
-    message,
+    message: safeMessage,
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
   });
 };

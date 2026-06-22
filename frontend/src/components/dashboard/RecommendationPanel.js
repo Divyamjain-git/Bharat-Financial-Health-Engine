@@ -1,109 +1,121 @@
 import React from 'react';
-import { getPriorityStyle } from '../../utils/currency';
-import api from '../../services/api';
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
-const categoryIcons = {
-  debt: '🏦',
-  savings: '💰',
-  emergency: '🛡️',
-  credit: '💳',
-  expenses: '🧾',
-  income: '💵',
-  investment: '📈'
+const catIcons = { savings: '💰', debt: '🏦', emergency: '🛡️', credit: '💳', investment: '📈', expense: '✂️', tax: '🏛️', insurance: '🔒', goal: '🎯' };
+const priMap = {
+  critical: { bg: 'rgba(239,68,68,0.12)', color: '#EF4444', border: 'rgba(239,68,68,0.25)' },
+  high:     { bg: 'rgba(240,180,41,0.12)', color: '#F0B429', border: 'rgba(240,180,41,0.25)' },
+  medium:   { bg: 'rgba(79,142,247,0.12)', color: '#4F8EF7', border: 'rgba(79,142,247,0.25)' },
+  low:      { bg: 'rgba(49,196,141,0.12)', color: '#31C48D', border: 'rgba(49,196,141,0.25)' },
 };
 
-const RecommendationCard = ({ rec, onDismiss }) => {
-  const pStyle = getPriorityStyle(rec.priority);
+const RecommendationPanel = ({ aiRecommendations = [], recommendations = [], aiLoading = false }) => {
+  const navigate = useNavigate();
+  const recs = aiRecommendations.length > 0 ? aiRecommendations : recommendations;
+  const isAI = aiRecommendations.length > 0;
+  const top3 = recs.slice(0, 3);
+  const totalImpact = aiRecommendations.reduce((s, r) => s + (r.projectedScoreImpact || 0), 0);
+
   return (
-    <div style={styles.card}>
-      <div style={styles.cardHeader}>
-        <span style={styles.icon}>{categoryIcons[rec.category] || '💡'}</span>
-        <div style={styles.headerContent}>
-          <div style={styles.title}>{rec.title}</div>
-          <span style={{ ...styles.badge, background: pStyle.bg, color: pStyle.color, border: `1px solid ${pStyle.border}` }}>
-            {rec.priority} priority
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.28 }}
+      className="card" style={{ position: 'relative', overflow: 'hidden' }}>
+
+      {/* Gradient top accent */}
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: isAI ? 'linear-gradient(90deg, #9061F9, #4F8EF7, #0DCFAA)' : 'linear-gradient(90deg, var(--gold), #d4960f)' }} />
+
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 800 }}>
+            {isAI ? '✨ AI Recommendations' : '💡 Recommendations'}
+          </span>
+          {recs.length > 0 && (
+            <span style={{ background: isAI ? 'var(--purple)' : 'var(--gold)', color: isAI ? 'white' : '#050810', borderRadius: 10, padding: '1px 8px', fontSize: 11, fontWeight: 800 }}>
+              {recs.length}
+            </span>
+          )}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {totalImpact > 0 && (
+            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--gold)', background: 'rgba(240,180,41,0.1)', borderRadius: 6, padding: '3px 8px' }}>
+              +{totalImpact} pts
+            </span>
+          )}
+          <span style={{ fontSize: 10, color: 'var(--text-3)', background: 'var(--bg-elevated)', borderRadius: 6, padding: '3px 8px' }}>
+            {isAI ? 'Powered by Gemini' : 'Rule-based'}
           </span>
         </div>
-        <button onClick={() => onDismiss(rec._id)} style={styles.dismiss} title="Dismiss">×</button>
       </div>
-      <p style={styles.description}>{rec.description}</p>
-      {rec.actionStep && (
-        <div style={styles.actionStep}>
-          <span style={styles.actionLabel}>→ Action</span>
-          <span style={styles.actionText}>{rec.actionStep}</span>
+
+      {/* Loading state */}
+      {aiLoading && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {[1, 2, 3].map(i => (
+            <div key={i} style={{ borderRadius: 9, padding: '14px', background: 'var(--bg-elevated)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div className="skeleton" style={{ height: 14, width: '60%', borderRadius: 4 }} />
+              <div className="skeleton" style={{ height: 11, width: '90%', borderRadius: 4 }} />
+            </div>
+          ))}
+          <div style={{ fontSize: 12, color: 'var(--text-3)', textAlign: 'center', marginTop: 4 }}>Gemini is analysing your finances…</div>
         </div>
       )}
-    </div>
+
+      {/* Rec cards */}
+      {!aiLoading && top3.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {top3.map((rec, i) => {
+            const p = priMap[rec.priority] || priMap.medium;
+            return (
+              <motion.div key={rec._id || rec.id || i} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.06 }}
+                style={{ background: p.bg, borderRadius: 9, padding: '11px 14px', border: `1px solid ${p.border}`, position: 'relative' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                  <span style={{ fontSize: 14 }}>{catIcons[rec.category] || '💡'}</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: p.color, flex: 1 }}>{rec.title}</span>
+                  <div style={{ display: 'flex', gap: 4 }}>
+                    {rec.projectedScoreImpact > 0 && (
+                      <span style={{ fontSize: 9, fontWeight: 700, color: '#0DCFAA', background: 'rgba(13,207,170,0.15)', borderRadius: 5, padding: '1px 5px' }}>+{rec.projectedScoreImpact}</span>
+                    )}
+                    <span style={{ fontSize: 9, fontWeight: 700, color: p.color, background: p.color + '22', borderRadius: 5, padding: '1px 5px', textTransform: 'uppercase' }}>{rec.priority}</span>
+                  </div>
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.5, paddingLeft: 20 }}>
+                  {rec.description?.length > 120 ? rec.description.substring(0, 120) + '…' : rec.description}
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Empty state */}
+      {!aiLoading && top3.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '20px 16px' }}>
+          <div style={{ fontSize: 32, marginBottom: 8 }}>🎯</div>
+          <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>No recommendations right now</div>
+          <div style={{ fontSize: 12, color: 'var(--text-3)' }}>Your financial health looks good!</div>
+        </div>
+      )}
+
+      {/* CTA */}
+      {!aiLoading && recs.length > 3 && (
+        <button onClick={() => navigate('/recommendations')}
+          style={{ marginTop: 12, width: '100%', padding: '9px', borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font-body)',
+            background: isAI ? 'rgba(144,97,249,0.1)' : 'rgba(240,180,41,0.1)',
+            border: `1px solid ${isAI ? 'rgba(144,97,249,0.2)' : 'rgba(240,180,41,0.2)'}`,
+            color: isAI ? '#9061F9' : 'var(--gold)', transition: 'all 0.2s' }}>
+          ✨ View All {recs.length} Recommendations →
+        </button>
+      )}
+      {!aiLoading && recs.length > 0 && recs.length <= 3 && (
+        <button onClick={() => navigate('/recommendations')}
+          style={{ marginTop: 12, width: '100%', padding: '9px', borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font-body)',
+            background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-2)', transition: 'all 0.2s' }}>
+          Open Recommendations →
+        </button>
+      )}
+    </motion.div>
   );
-};
-
-const RecommendationPanel = ({ recommendations, loading, onRefresh }) => {
-  const handleDismiss = async (id) => {
-    try {
-      await api.patch(`/recommendations/${id}/dismiss`);
-      onRefresh?.();
-    } catch (err) {
-      console.error('Dismiss failed', err);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {[1, 2, 3].map(i => (
-          <div key={i} style={{ height: 80, background: 'var(--bg-elevated)', borderRadius: 10, animation: 'pulse 1.5s ease infinite' }} />
-        ))}
-      </div>
-    );
-  }
-
-  if (!recommendations || recommendations.length === 0) {
-    return (
-      <div style={styles.empty}>
-        <div style={{ fontSize: 36, marginBottom: 10 }}>🎯</div>
-        <div style={styles.emptyTitle}>No recommendations right now</div>
-        <div style={styles.emptySubtitle}>Your financial health looks good! Keep it up.</div>
-      </div>
-    );
-  }
-
-  // Sort high > medium > low
-  const sorted = [...recommendations].sort((a, b) => {
-    const order = { high: 0, medium: 1, low: 2 };
-    return order[a.priority] - order[b.priority];
-  });
-
-  return (
-    <div style={styles.list}>
-      {sorted.map((rec) => (
-        <RecommendationCard key={rec._id} rec={rec} onDismiss={handleDismiss} />
-      ))}
-    </div>
-  );
-};
-
-const styles = {
-  list: { display: 'flex', flexDirection: 'column', gap: 12 },
-  card: {
-    background: 'var(--bg-elevated)',
-    border: '1px solid var(--border)',
-    borderRadius: 12,
-    padding: '16px',
-    transition: 'border-color 0.2s'
-  },
-  cardHeader: { display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 10 },
-  icon: { fontSize: 20, flexShrink: 0, marginTop: 1 },
-  headerContent: { flex: 1 },
-  title: { fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 5, lineHeight: 1.3 },
-  badge: { display: 'inline-block', padding: '2px 8px', borderRadius: 10, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 },
-  dismiss: { background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: 18, cursor: 'pointer', lineHeight: 1, padding: '0 4px', flexShrink: 0 },
-  description: { fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 10 },
-  actionStep: { background: 'rgba(245, 166, 35, 0.07)', borderLeft: '2px solid var(--accent-gold)', padding: '8px 12px', borderRadius: '0 6px 6px 0' },
-  actionLabel: { fontSize: 11, fontWeight: 700, color: 'var(--accent-gold)', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 3 },
-  actionText: { fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 },
-  empty: { textAlign: 'center', padding: '32px 20px' },
-  emptyTitle: { fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 6 },
-  emptySubtitle: { fontSize: 13, color: 'var(--text-muted)' }
 };
 
 export default RecommendationPanel;
