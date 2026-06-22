@@ -16,7 +16,7 @@ const NAV = [
   { path: '/alerts',          icon: '◉',  label: 'Alerts', badge: true },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user } = useSelector(s => s.auth);
@@ -26,16 +26,21 @@ export default function Sidebar() {
   const aiCount = aiRecommendations?.filter(r => r.priority === 'critical' || r.priority === 'high').length ?? 0;
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
       {/* Logo */}
       <div style={s.logo}>
         <div style={s.logoMark}>
           <span style={{ fontSize: 18, fontWeight: 900, color: '#050810' }}>₹</span>
         </div>
-        <div>
+        <div style={{ flex: 1 }}>
           <div style={s.logoText}>BFHE</div>
           <div style={s.logoSub}>Financial Engine</div>
         </div>
+        
+        {/* Mobile Close Button */}
+        <button className="mobile-close-btn" onClick={onClose} style={s.closeBtn}>
+          ✕
+        </button>
       </div>
 
       {/* User card */}
@@ -51,7 +56,12 @@ export default function Sidebar() {
       <nav style={s.nav}>
         <div style={s.navLabel}>MENU</div>
         {NAV.map(item => (
-          <NavLink key={item.path} to={item.path} style={({ isActive }) => ({ ...s.navItem, ...(isActive ? s.navItemActive : {}) })}>
+          <NavLink 
+            key={item.path} 
+            to={item.path} 
+            onClick={onClose}
+            style={({ isActive }) => ({ ...s.navItem, ...(isActive ? s.navItemActive : {}) })}
+          >
             {({ isActive }) => (
               <>
                 <span style={{ ...s.navIcon, ...(isActive ? { color: 'var(--gold)' } : {}) }}>{item.icon}</span>
@@ -87,7 +97,8 @@ export default function Sidebar() {
 }
 
 const s = {
-  logo: { display: 'flex', alignItems: 'center', gap: 10, padding: '20px 18px', borderBottom: '1px solid var(--border)' },
+  logo: { display: 'flex', alignItems: 'center', gap: 10, padding: '20px 18px', borderBottom: '1px solid var(--border)', position: 'relative' },
+  closeBtn: { background: 'transparent', border: 'none', color: 'var(--text)', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '5px' },
   logoMark: { width: 38, height: 38, borderRadius: 10, background: 'linear-gradient(135deg, var(--gold), #d4960f)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   logoText: { fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 900, letterSpacing: 2, color: 'var(--text)' },
   logoSub: { fontSize: 9, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: 0.5 },

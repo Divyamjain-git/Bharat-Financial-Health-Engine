@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
@@ -24,10 +24,34 @@ function ProtectedRoute({ children }) {
 }
 
 function AppShell({ children }) {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-deep)' }}>
-      <Sidebar />
-      <main style={{ flex: 1, overflowY: 'auto', minWidth: 0, marginLeft: '240px' }}>{children}</main>
+    <div className="app-layout">
+      {/* Mobile Header */}
+      <div className="mobile-header">
+        <div className="mobile-header-logo">
+          <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg, var(--gold), #d4960f)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ fontSize: 16, fontWeight: 900, color: '#050810' }}>₹</span>
+          </div>
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 900, letterSpacing: 1 }}>BFHE</span>
+        </div>
+        <button className="hamburger-btn" onClick={() => setIsSidebarOpen(true)}>
+          ☰
+        </button>
+      </div>
+
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      
+      {/* Backdrop for mobile */}
+      <div 
+        className={`sidebar-backdrop ${isSidebarOpen ? 'show' : ''}`} 
+        onClick={() => setIsSidebarOpen(false)} 
+      />
+
+      <main className="main-content">
+        {children}
+      </main>
     </div>
   );
 }

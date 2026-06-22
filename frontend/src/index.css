@@ -104,10 +104,21 @@ h1,h2,h3,h4,h5 { font-family: var(--font-display); font-weight: 800; line-height
 .progress-track { height: 6px; background: var(--bg-elevated); border-radius: 3px; overflow: hidden; }
 .progress-fill { height: 100%; border-radius: 3px; transition: width 0.8s cubic-bezier(0.4,0,0.2,1); }
 
-/* ─── Sidebar Layout ────────────────────────────────── */
-.app-layout { display: flex; min-height: 100vh; }
-.sidebar { width: 240px; min-height: 100vh; background: var(--bg-card); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: fixed; left: 0; top: 0; bottom: 0; z-index: 50; }
-.main-content { margin-left: 240px; flex: 1; min-height: 100vh; }
+/* ─── Sidebar & Layout ──────────────────────────────── */
+.app-layout { display: flex; min-height: 100vh; background: var(--bg); }
+.sidebar { width: 240px; min-height: 100vh; background: var(--bg-card); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: fixed; left: 0; top: 0; bottom: 0; z-index: 50; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+.main-content { margin-left: 240px; flex: 1; min-height: 100vh; display: flex; flex-direction: column; }
+
+/* Mobile Header */
+.mobile-header { display: none; align-items: center; justify-content: space-between; padding: 16px 20px; background: var(--bg-card); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 30; }
+.mobile-header-logo { display: flex; align-items: center; gap: 10px; }
+.hamburger-btn { background: transparent; border: none; color: var(--text); font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.mobile-close-btn { display: none; }
+
+/* Backdrop Overlay */
+.sidebar-backdrop { display: none; position: fixed; inset: 0; background: rgba(5, 8, 16, 0.7); backdrop-filter: blur(4px); z-index: 40; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+.sidebar-backdrop.show { opacity: 1; pointer-events: auto; }
+
 
 /* ─── Tooltip ────────────────────────────────────────── */
 .tooltip-box { background: var(--bg-elevated); border: 1px solid var(--border-strong); border-radius: 8px; padding: 10px 14px; font-size: 13px; box-shadow: var(--shadow); }
@@ -129,11 +140,16 @@ h1,h2,h3,h4,h5 { font-family: var(--font-display); font-weight: 800; line-height
 .mt-1 { margin-top: 4px; } .mt-2 { margin-top: 8px; } .mt-3 { margin-top: 12px; } .mt-4 { margin-top: 16px; }
 
 @media (max-width: 1024px) {
-  .sidebar { transform: translateX(-100%); transition: transform 0.3s; }
+  .sidebar { transform: translateX(-100%); z-index: 100; }
   .sidebar.open { transform: translateX(0); }
   .main-content { margin-left: 0; }
+  .mobile-header { display: flex; }
+  .mobile-close-btn { display: flex; }
+  .sidebar-backdrop { display: block; z-index: 90; }
   .grid-3 { grid-template-columns: 1fr 1fr; }
+  .dashboard-grid { grid-template-columns: 1fr !important; }
 }
 @media (max-width: 640px) {
   .grid-2, .grid-3 { grid-template-columns: 1fr; }
 }
+.dashboard-grid { display: grid; grid-template-columns: 300px 1fr; }
