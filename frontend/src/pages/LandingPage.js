@@ -309,6 +309,7 @@ export default function LandingPage() {
 
       {/* ── NAVBAR ──────────────────────────────────────────────────────────── */}
       <motion.nav
+        className="landing-nav"
         style={{
           position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
           background: scrolled ? 'rgba(5,8,16,0.92)' : 'transparent',
@@ -325,12 +326,12 @@ export default function LandingPage() {
           <div style={{ width: 34, height: 34, borderRadius: 9, background: 'linear-gradient(135deg,#F0B429,#d4960f)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 14, color: '#050810' }}>₹</div>
           <div>
             <div style={{ fontFamily: "'Cabinet Grotesk', sans-serif", fontSize: 15, fontWeight: 900, letterSpacing: 2 }}>BFHE</div>
-            <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', letterSpacing: 0.5, marginTop: -2 }}>BHARAT FINANCIAL ENGINE</div>
+            <div className="hide-on-mobile" style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', letterSpacing: 0.5, marginTop: -2 }}>BHARAT FINANCIAL HEALTH ENGINE</div>
           </div>
         </div>
 
         {/* Nav links */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
+        <div className="hide-on-mobile" style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
           {['Features', 'How it Works', 'Pricing'].map(l => (
             <a key={l} href={`#${l.toLowerCase().replace(' ','-')}`} style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.55)', textDecoration: 'none', fontWeight: 500, transition: 'color 0.15s' }}
               onMouseEnter={e => e.target.style.color = '#fff'}
@@ -342,7 +343,7 @@ export default function LandingPage() {
 
         {/* CTA */}
         <div style={{ display: 'flex', gap: 10 }}>
-          <button onClick={() => navigate('/login')} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 8, padding: '7px 16px', color: 'rgba(255,255,255,0.8)', cursor: 'pointer', fontSize: 13, fontFamily: "'Instrument Sans', sans-serif", fontWeight: 600, transition: 'all 0.15s' }}
+          <button className="hide-on-mobile" onClick={() => navigate('/login')} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 8, padding: '7px 16px', color: 'rgba(255,255,255,0.8)', cursor: 'pointer', fontSize: 13, fontFamily: "'Instrument Sans', sans-serif", fontWeight: 600, transition: 'all 0.15s' }}
             onMouseEnter={e => { e.target.style.borderColor = '#F0B429'; e.target.style.color = '#F0B429'; }}
             onMouseLeave={e => { e.target.style.borderColor = 'rgba(255,255,255,0.15)'; e.target.style.color = 'rgba(255,255,255,0.8)'; }}>
             Sign In
@@ -363,7 +364,7 @@ export default function LandingPage() {
         <div style={{ position: 'absolute', top: '30%', left: '50%', transform: 'translate(-50%,-50%)', width: 800, height: 600, background: 'radial-gradient(ellipse, rgba(240,180,41,0.07) 0%, transparent 70%)', pointerEvents: 'none', animation: 'glow 4s ease-in-out infinite' }}/>
         <div style={{ position: 'absolute', top: '60%', left: '20%', width: 400, height: 400, background: 'radial-gradient(ellipse, rgba(79,142,247,0.06) 0%, transparent 70%)', pointerEvents: 'none' }}/>
 
-        <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 1200, margin: '0 auto', padding: '80px 40px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 60, alignItems: 'center' }}>
+        <div className="landing-hero-grid" style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 1200, margin: '0 auto', padding: '80px 40px' }}>
 
           {/* Left: Text */}
           <motion.div style={{ y: heroY, opacity: heroOpacity }}>
@@ -410,10 +411,7 @@ export default function LandingPage() {
                 style={{ background: 'linear-gradient(135deg,#F0B429,#d4960f)', border: 'none', borderRadius: 10, padding: '13px 26px', color: '#050810', cursor: 'pointer', fontSize: 15, fontFamily: "'Instrument Sans', sans-serif", fontWeight: 800, display: 'flex', alignItems: 'center', gap: 8 }}>
                 Get your free score →
               </motion.button>
-              <motion.button whileHover={{ borderColor: 'rgba(255,255,255,0.3)' }}
-                style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, padding: '13px 22px', color: 'rgba(255,255,255,0.75)', cursor: 'pointer', fontSize: 15, fontFamily: "'Instrument Sans', sans-serif", fontWeight: 600, transition: 'all 0.15s' }}>
-                Watch demo ▶
-              </motion.button>
+              
             </motion.div>
 
             {/* Social proof */}
@@ -434,7 +432,7 @@ export default function LandingPage() {
           </motion.div>
 
           {/* Right: Dashboard Mockup */}
-          <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <div className="mockup-wrapper" style={{ display: 'flex', justifyContent: 'center' }}>
             <ScoreMockup />
           </div>
         </div>
@@ -487,7 +485,7 @@ export default function LandingPage() {
 
       {/* ── STATS SECTION ───────────────────────────────────────────────────── */}
       <section style={{ background: 'rgba(255,255,255,0.02)', borderTop: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-        <div style={{ maxWidth: 1000, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)' }}>
+        <div className="grid-4-to-1" style={{ maxWidth: 1000, margin: '0 auto' }}>
           <StatCounter value={2400} suffix="+" label="Active users" color="#F0B429" delay={0}/>
           <StatCounter value={85} suffix="%" label="Average score improvement in 3 months" color="#0DCFAA" delay={0.1}/>
           <StatCounter value={4200} suffix="+" label="Financial goals tracked" color="#4F8EF7" delay={0.2}/>

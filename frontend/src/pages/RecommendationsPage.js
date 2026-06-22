@@ -310,19 +310,19 @@ export default function RecommendationsPage() {
   });
 
   return (
-    <div style={{ padding: '24px 24px 48px', maxWidth: 1300, margin: '0 auto' }}>
+    <div style={{ padding: '24px 24px 48px', maxWidth: 1200, margin: '0 auto' }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 14, marginBottom: 20 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 14, marginBottom: 24 }}>
         <div>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 900, marginBottom: 4 }}>✨ AI Recommendations</h1>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 900, marginBottom: 4 }}>✨ Financial Insights</h1>
           <p style={{ fontSize: 13, color: 'var(--text-2)' }}>
-            {allRecs.length} insights · {criticalCount} urgent · {doneCount} completed
-            {aiLoading && <span style={{ color: 'var(--gold)', marginLeft: 8 }}>· Analysing...</span>}
+            {filteredRecs.length} actionable steps to improve your financial health
+            {aiLoading && <span style={{ color: 'var(--gold)', marginLeft: 8 }}>· Analysing new data...</span>}
           </p>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <button onClick={() => setShowChat(c => !c)} style={{ padding: '7px 14px', borderRadius: 8, fontSize: 12, fontWeight: 700, background: showChat ? 'rgba(144,97,249,0.15)' : 'var(--bg-elevated)', color: showChat ? '#9061F9' : 'var(--text-2)', border: `1px solid ${showChat ? 'rgba(144,97,249,0.25)' : 'var(--border)'}`, cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
-            {showChat ? '✨ Hide Chat' : '✨ AI Chat'}
+            {showChat ? '✨ Hide Chat' : '✨ Ask Gemini'}
           </button>
           <button onClick={handleRefresh} disabled={refreshing || aiLoading} className="btn btn-secondary btn-sm">
             {refreshing ? <><span className="spinner" />Refreshing...</> : '↻ Refresh'}
@@ -330,116 +330,28 @@ export default function RecommendationsPage() {
         </div>
       </div>
 
-      {/* Score + Metrics Bar */}
-      {score && (
-        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, padding: '16px 20px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
-          <ScoreRing score={score.totalScore ?? 0} grade={score.grade ?? 'N/A'} size={80} />
-          <div style={{ display: 'flex', gap: 10, flex: 1, flexWrap: 'wrap', minWidth: 0 }}>
-            {[
-              { label: 'Income', value: fmt(income), color: 'var(--text)' },
-              { label: 'Disposable', value: fmt(disposable), color: disposable > 0 ? '#0DCFAA' : '#F05252' },
-              { label: 'DTI', value: `${dtiRatio.toFixed(1)}%`, color: dtiRatio > 40 ? '#F05252' : '#0DCFAA' },
-              { label: 'Emergency', value: `${emergencyMos.toFixed(1)}mo`, color: emergencyMos < 3 ? '#FF8A4C' : '#0DCFAA' },
-              { label: 'Savings', value: `${savingsRate.toFixed(1)}%`, color: savingsRate < 10 ? '#F05252' : savingsRate < 20 ? '#F0B429' : '#0DCFAA' },
-              { label: 'Credit', value: `${creditUtil.toFixed(1)}%`, color: creditUtil > 30 ? '#F05252' : '#0DCFAA' },
-            ].map(m => (
-              <div key={m.label} style={{ background: 'var(--bg-elevated)', borderRadius: 9, padding: '8px 14px', minWidth: 90 }}>
-                <div style={{ fontSize: 10, color: 'var(--text-3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 2 }}>{m.label}</div>
-                <div style={{ fontSize: 15, fontWeight: 800, fontFamily: 'var(--font-display)', color: m.color }}>{m.value}</div>
-              </div>
+      {/* 2-column layout */}
+      <div style={{ display: 'grid', gridTemplateColumns: showChat ? '1fr 380px' : '1fr', gap: 24, alignItems: 'start' }}>
+        
+        {/* LEFT COLUMN — Feed */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          
+          {/* Horizontal Filters */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', background: 'var(--bg-card)', padding: '12px 16px', borderRadius: 12, border: '1px solid var(--border)' }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: 0.5, marginRight: 4 }}>Filter:</span>
+            <button style={filterBtn(activeTab === 'all')} onClick={() => { setActiveTab('all'); setActiveFilter('all'); }}>All Insights</button>
+            <button style={filterBtn(activeTab === 'done')} onClick={() => { setActiveTab('done'); setActiveFilter('all'); }}>✅ Completed ({doneCount})</button>
+            <div style={{ width: 1, height: 16, background: 'var(--border)', margin: '0 4px' }} />
+            {categories.map(cat => (
+              <button key={cat} style={filterBtn(activeFilter === cat, CATEGORY_META[cat]?.color)} onClick={() => { setActiveFilter(cat); setActiveTab('all'); }}>
+                {CATEGORY_META[cat]?.icon} {CATEGORY_META[cat]?.label ?? cat}
+              </button>
             ))}
           </div>
-          {totalProjectedImpact > 0 && (
-            <div style={{ background: 'rgba(240,180,41,0.1)', border: '1px solid rgba(240,180,41,0.2)', borderRadius: 10, padding: '10px 16px', textAlign: 'center', flexShrink: 0 }}>
-              <div style={{ fontSize: 10, color: 'var(--gold)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 2 }}>Projected Impact</div>
-              <div style={{ fontSize: 20, fontWeight: 900, fontFamily: 'var(--font-display)', color: 'var(--gold)' }}>+{totalProjectedImpact} pts</div>
-              <div style={{ fontSize: 10, color: 'var(--text-3)' }}>if all AI recs actioned</div>
-            </div>
-          )}
-        </div>
-      )}
 
-      {/* Critical Alert */}
-      {criticalCount > 0 && (
-        <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
-          style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 11, padding: '12px 16px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 18 }}>🚨</span>
-          <div>
-            <div style={{ fontWeight: 800, color: '#EF4444', fontSize: 13 }}>{criticalCount} High-Priority Issue{criticalCount > 1 ? 's' : ''}</div>
-            <div style={{ fontSize: 12, color: 'var(--text-2)' }}>Address these first for the biggest impact.</div>
-          </div>
-        </motion.div>
-      )}
-
-      {/* 3-column layout */}
-      <div className={`responsive-grid ${showChat ? 'rg-3col' : 'rg-sidebar-main'}`} style={{ alignItems: 'start' }}>
-
-        {/* LEFT SIDEBAR — Filters */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14, position: 'sticky', top: 20 }}>
-          {/* Priority filter */}
-          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '14px' }}>
-            <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 }}>Priority</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-              {[['all', 'All', 'var(--text)'], ['critical', '🔴 Critical', '#EF4444'], ['high', '🟠 High', '#F0B429'], ['medium', '🔵 Medium', '#4F8EF7'], ['low', '🟢 Low', '#31C48D']].map(([v, l, c]) => (
-                <button key={v} style={filterBtn(activePriority === v, c)} onClick={() => setActivePriority(v)}>{l}</button>
-              ))}
-            </div>
-          </div>
-          {/* Category filter */}
-          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '14px' }}>
-            <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 }}>Category</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-              <button style={filterBtn(activeFilter === 'all')} onClick={() => setActiveFilter('all')}>All</button>
-              {categories.map(cat => (
-                <button key={cat} style={filterBtn(activeFilter === cat, CATEGORY_META[cat]?.color)} onClick={() => setActiveFilter(cat)}>
-                  {CATEGORY_META[cat]?.icon} {CATEGORY_META[cat]?.label ?? cat}
-                </button>
-              ))}
-            </div>
-          </div>
-          {/* Goals */}
-          {activeGoals.length > 0 && (
-            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '14px' }}>
-              <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 }}>Your Goals</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {activeGoals.slice(0, 3).map(g => {
-                  const p = Math.min(100, Math.round((g.currentAmount / g.targetAmount) * 100));
-                  return (
-                    <div key={g.id} style={{ padding: '8px 10px', background: 'var(--bg-elevated)', borderRadius: 8 }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>{g.icon || '🎯'} {g.title}</div>
-                      <div style={{ height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 2, overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: `${p}%`, background: 'var(--gold)', borderRadius: 2 }} />
-                      </div>
-                      <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 3 }}>{p}% · {fmt(g.currentAmount)}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* CENTER — Tabs + Feed */}
-        <div>
-          {/* Tabs */}
-          <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
-            <button style={tabStyle('all')} onClick={() => setActiveTab('all')}>✨ All Insights ({allRecs.filter(r => !doneIds.has(r.id || r._id)).length})</button>
-            <button style={tabStyle('rules')} onClick={() => setActiveTab('rules')}>📋 Rule-Based ({ruleRecs.filter(r => !doneIds.has(r.id || r._id)).length})</button>
-            <button style={tabStyle('done')} onClick={() => setActiveTab('done')}>✅ Completed ({doneCount})</button>
-          </div>
-
-          {/* Count */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-            <span style={{ fontSize: 12, color: 'var(--text-3)' }}>Showing {filteredRecs.length} recommendations</span>
-            {(activeFilter !== 'all' || activePriority !== 'all') && (
-              <button style={{ fontSize: 11, color: 'var(--gold)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)' }}
-                onClick={() => { setActiveFilter('all'); setActivePriority('all'); }}>Clear filters ×</button>
-            )}
-          </div>
-
-          {/* Loading */}
+          {/* Loading State */}
           {aiLoading && activeTab === 'all' && aiRecs.length === 0 && (
-            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px', display: 'flex', alignItems: 'center', gap: 12 }}>
               <span className="spinner" style={{ width: 18, height: 18 }} />
               <div>
                 <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 2 }}>Gemini is analysing your finances...</div>
@@ -450,17 +362,17 @@ export default function RecommendationsPage() {
 
           {/* Feed */}
           {filteredRecs.length === 0 && !(aiLoading && activeTab === 'all') ? (
-            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, textAlign: 'center', padding: '40px 20px' }}>
-              <div style={{ fontSize: 36, marginBottom: 10 }}>{activeTab === 'done' ? '🎯' : '🎉'}</div>
-              <div style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 800, marginBottom: 6 }}>
-                {activeTab === 'done' ? 'No completed items yet' : 'No recommendations match'}
+            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, textAlign: 'center', padding: '60px 20px' }}>
+              <div style={{ fontSize: 36, marginBottom: 12 }}>{activeTab === 'done' ? '🎯' : '🎉'}</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 800, marginBottom: 6 }}>
+                {activeTab === 'done' ? 'No completed items yet' : 'No insights found'}
               </div>
-              <div style={{ fontSize: 13, color: 'var(--text-2)' }}>
-                {activeTab === 'done' ? 'Mark recommendations as done to track your progress here.' : 'Try changing filters or switch tabs.'}
+              <div style={{ fontSize: 14, color: 'var(--text-2)' }}>
+                {activeTab === 'done' ? 'Mark recommendations as done to track your progress here.' : 'Try changing your filters.'}
               </div>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {filteredRecs.map((rec, i) => (
                 <RecCard key={rec.id || rec._id || i} rec={rec} index={i} isAI={rec.source === 'gemini'}
                   isDone={doneIds.has(rec.id || rec._id)}
@@ -471,15 +383,12 @@ export default function RecommendationsPage() {
           )}
         </div>
 
-        {/* RIGHT — AI Chat */}
-        {showChat && <AIChatPanel financialContext={financialContext} />}
-      </div>
-
-      {/* Footer */}
-      <div style={{ marginTop: 28, padding: '12px 16px', background: 'var(--bg-elevated)', borderRadius: 10, border: '1px solid var(--border)' }}>
-        <p style={{ fontSize: 11, color: 'var(--text-3)', lineHeight: 1.7 }}>
-          <strong style={{ color: 'var(--text-2)' }}>Disclaimer:</strong> Recommendations are generated by AI and rule-based algorithms for informational purposes only. Consult a SEBI-registered financial advisor before making major decisions.
-        </p>
+        {/* RIGHT COLUMN — AI Chat */}
+        {showChat && (
+          <div style={{ position: 'sticky', top: 20 }}>
+            <AIChatPanel financialContext={financialContext} />
+          </div>
+        )}
       </div>
     </div>
   );

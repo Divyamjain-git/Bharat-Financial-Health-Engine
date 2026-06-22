@@ -5,15 +5,14 @@ import { motion } from 'framer-motion';
 import { logout } from '../../store/slices/authSlice';
 
 const NAV = [
-  { path: '/dashboard',       icon: '⬡',  label: 'Dashboard' },
- 
-  { path: '/net-worth',       icon: '◈',  label: 'Net Worth' },
-  { path: '/goals',           icon: '◎',  label: 'Goals' },
-  { path: '/budget',          icon: '◧',  label: 'Budget Planner' },
-  { path: '/simulation',      icon: '⟳',  label: 'Simulator' },
-  { path: '/inflation',       icon: '〽', label: 'Inflation' },
-  { path: '/recommendations', icon: '✦',  label: 'AI Recommendations', aibadge: true },
-  { path: '/alerts',          icon: '◉',  label: 'Alerts', badge: true },
+  { path: '/dashboard', icon: '⬡', label: 'Dashboard' },
+  { path: '/net-worth', icon: '◈', label: 'Net Worth' },
+  { path: '/goals', icon: '◎', label: 'Goals' },
+  { path: '/budget', icon: '◧', label: 'Budget Planner' },
+  { path: '/simulation', icon: '⟳', label: 'Simulator' },
+  { path: '/inflation', icon: '〽', label: 'Inflation' },
+  { path: '/recommendations', icon: '✦', label: 'AI Recommendations', aibadge: true },
+  { path: '/alerts', icon: '◉', label: 'Alerts', badge: true },
 ];
 
 export default function Sidebar({ isOpen, onClose }) {
@@ -34,7 +33,7 @@ export default function Sidebar({ isOpen, onClose }) {
         </div>
         <div style={{ flex: 1 }}>
           <div style={s.logoText}>BFHE</div>
-          <div style={s.logoSub}>Financial Engine</div>
+          <div style={s.logoSub}>Bharat Financial Health Engine</div>
         </div>
         
         {/* Mobile Close Button */}
@@ -56,9 +55,9 @@ export default function Sidebar({ isOpen, onClose }) {
       <nav style={s.nav}>
         <div style={s.navLabel}>MENU</div>
         {NAV.map(item => (
-          <NavLink 
-            key={item.path} 
-            to={item.path} 
+          <NavLink
+            key={item.path}
+            to={item.path}
             onClick={onClose}
             style={({ isActive }) => ({ ...s.navItem, ...(isActive ? s.navItemActive : {}) })}
           >
@@ -69,7 +68,7 @@ export default function Sidebar({ isOpen, onClose }) {
                 {item.badge && unreadCount > 0 && (
                   <span style={s.alertBadge}>{unreadCount}</span>
                 )}
-                {item.aibage && aiCount > 0 && (
+                {item.aibadge && aiCount > 0 && (
                   <span style={{ ...s.alertBadge, background: '#9061F9' }}>{aiCount}</span>
                 )}
                 {isActive && (
@@ -98,7 +97,7 @@ export default function Sidebar({ isOpen, onClose }) {
 
 const s = {
   logo: { display: 'flex', alignItems: 'center', gap: 10, padding: '20px 18px', borderBottom: '1px solid var(--border)', position: 'relative' },
-  closeBtn: { background: 'transparent', border: 'none', color: 'var(--text)', fontSize: 18, cursor: 'pointer', alignItems: 'center', justifyContent: 'center', padding: '5px' },
+  closeBtn: { background: 'transparent', border: 'none', color: 'var(--text)', fontSize: 18, cursor: 'pointer', padding: '5px' },
   logoMark: { width: 38, height: 38, borderRadius: 10, background: 'linear-gradient(135deg, var(--gold), #d4960f)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   logoText: { fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 900, letterSpacing: 2, color: 'var(--text)' },
   logoSub: { fontSize: 9, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: 0.5 },

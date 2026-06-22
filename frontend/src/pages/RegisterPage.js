@@ -24,11 +24,11 @@ const RegisterPage = () => {
       <div style={styles.bgOrb1} /><div style={styles.bgOrb2} />
 
       <div style={styles.container} className="animate-fade-up">
-        <div style={styles.logo}>
-          <div style={styles.logoIcon}>₹</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28, justifyContent: 'center' }}>
+          <div style={{ width: 44, height: 44, borderRadius: 10, background: 'linear-gradient(135deg,#F0B429,#d4960f)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 20, color: '#050810' }}>₹</div>
           <div>
-            <div style={styles.logoTitle}>BFHE</div>
-            <div style={styles.logoSub}>Bharat Financial Health Engine</div>
+            <div style={{ fontFamily: "'Cabinet Grotesk', sans-serif", fontSize: 20, fontWeight: 900, letterSpacing: 2, color: 'var(--text)' }}>BFHE</div>
+            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', letterSpacing: 0.5, textTransform: 'uppercase' }}>BHARAT FINANCIAL HEALTH ENGINE</div>
           </div>
         </div>
 
@@ -104,10 +104,10 @@ const styles = {
   bgOrb1: { position: 'fixed', top: '-10%', right: '-5%', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(245,166,35,0.06) 0%, transparent 70%)', pointerEvents: 'none' },
   bgOrb2: { position: 'fixed', bottom: '-10%', left: '-5%', width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,201,167,0.04) 0%, transparent 70%)', pointerEvents: 'none' },
   container: { width: '100%', maxWidth: 480, position: 'relative', zIndex: 1 },
-  logo: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28, justifyContent: 'center' },
-  logoIcon: { width: 44, height: 44, borderRadius: 10, background: 'linear-gradient(135deg, var(--accent-gold), #E8920A)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 800, color: '#070B14', fontFamily: 'var(--font-display)' },
-  logoTitle: { fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: 2 },
-  logoSub: { fontSize: 10, color: 'var(--text-muted)', letterSpacing: 0.5, textTransform: 'uppercase' },
+  logo: {},
+  logoIcon: {},
+  logoTitle: {},
+  logoSub: {},
   card: { background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 20, padding: '32px 28px' },
   heading: { fontSize: 24, fontWeight: 800, marginBottom: 6, color: 'var(--text-primary)' },
   subheading: { fontSize: 14, color: 'var(--text-secondary)', marginBottom: 24 },

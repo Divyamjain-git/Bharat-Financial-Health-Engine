@@ -42,11 +42,11 @@ function AppShell({ children }) {
       </div>
 
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-      
+
       {/* Backdrop for mobile */}
-      <div 
-        className={`sidebar-backdrop ${isSidebarOpen ? 'show' : ''}`} 
-        onClick={() => setIsSidebarOpen(false)} 
+      <div
+        className={`sidebar-backdrop ${isSidebarOpen ? 'show' : ''}`}
+        onClick={() => setIsSidebarOpen(false)}
       />
 
       <main className="main-content">
@@ -64,14 +64,14 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/onboarding" element={<ProtectedRoute><OnboardingPage /></ProtectedRoute>} />
-        <Route path="/dashboard"        element={<ProtectedRoute><AppShell><DashboardPage /></AppShell></ProtectedRoute>} />
-        <Route path="/recommendations"  element={<ProtectedRoute><AppShell><RecommendationsPage /></AppShell></ProtectedRoute>} />
-        <Route path="/budget"           element={<ProtectedRoute><AppShell><BudgetPage /></AppShell></ProtectedRoute>} />
-        <Route path="/goals"            element={<ProtectedRoute><AppShell><GoalsPage /></AppShell></ProtectedRoute>} />
-        <Route path="/net-worth"        element={<ProtectedRoute><AppShell><NetWorthPage /></AppShell></ProtectedRoute>} />
-        <Route path="/simulation"       element={<ProtectedRoute><AppShell><SimulationPage /></AppShell></ProtectedRoute>} />
-        <Route path="/inflation"        element={<ProtectedRoute><AppShell><InflationPage /></AppShell></ProtectedRoute>} />
-        <Route path="/alerts"           element={<ProtectedRoute><AppShell><AlertsPage /></AppShell></ProtectedRoute>} />
+        <Route path="/dashboard" element={<ProtectedRoute><AppShell><DashboardPage /></AppShell></ProtectedRoute>} />
+        <Route path="/recommendations" element={<ProtectedRoute><AppShell><RecommendationsPage /></AppShell></ProtectedRoute>} />
+        <Route path="/budget" element={<ProtectedRoute><AppShell><BudgetPage /></AppShell></ProtectedRoute>} />
+        <Route path="/goals" element={<ProtectedRoute><AppShell><GoalsPage /></AppShell></ProtectedRoute>} />
+        <Route path="/net-worth" element={<ProtectedRoute><AppShell><NetWorthPage /></AppShell></ProtectedRoute>} />
+        <Route path="/simulation" element={<ProtectedRoute><AppShell><SimulationPage /></AppShell></ProtectedRoute>} />
+        <Route path="/inflation" element={<ProtectedRoute><AppShell><InflationPage /></AppShell></ProtectedRoute>} />
+        <Route path="/alerts" element={<ProtectedRoute><AppShell><AlertsPage /></AppShell></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

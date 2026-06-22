@@ -222,11 +222,11 @@ const LoginPage = () => {
 
       <div style={styles.container} className="animate-fade-up">
         {/* Logo */}
-        <div style={styles.logo}>
-          <div style={styles.logoIcon}>₹</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 32, justifyContent: 'center' }}>
+          <div style={{ width: 48, height: 48, borderRadius: 12, background: 'linear-gradient(135deg,#F0B429,#d4960f)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 22, color: '#050810' }}>₹</div>
           <div>
-            <div style={styles.logoTitle}>BFHE</div>
-            <div style={styles.logoSub}>Bharat Financial Health Engine</div>
+            <div style={{ fontFamily: "'Cabinet Grotesk', sans-serif", fontSize: 22, fontWeight: 900, letterSpacing: 2, color: 'var(--text)' }}>BFHE</div>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', letterSpacing: 0.5, textTransform: 'uppercase' }}>BHARAT FINANCIAL HEALTH ENGINE</div>
           </div>
         </div>
 
@@ -315,35 +315,10 @@ const styles = {
     position: 'relative',
     zIndex: 1
   },
-  logo: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 32,
-    justifyContent: 'center'
-  },
-  logoIcon: {
-    width: 48, height: 48,
-    borderRadius: 12,
-    background: 'linear-gradient(135deg, var(--gold), #E8920A)',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    fontSize: 22, fontWeight: 800,
-    color: '#070B14',
-    fontFamily: 'var(--font-display)'
-  },
-  logoTitle: {
-    fontFamily: 'var(--font-display)',
-    fontSize: 22,
-    fontWeight: 800,
-    color: 'var(--text)',
-    letterSpacing: 2
-  },
-  logoSub: {
-    fontSize: 11,
-    color: 'var(--text-3)',
-    letterSpacing: 0.5,
-    textTransform: 'uppercase'
-  },
+  logo: {},
+  logoIcon: {},
+  logoTitle: {},
+  logoSub: {},
   card: {
     background: 'var(--bg-card)',
     border: '1px solid var(--border)',
