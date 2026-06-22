@@ -44,7 +44,11 @@ app.use('/api/v1/ai', require('./routes/ai'));
 app.use('*', (req, res) => res.status(404).json({ success: false, message: `Route ${req.originalUrl} not found` }));
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 5000;
-const server = app.listen(PORT, () => console.log(`🚀 BFHE v2 Server running on port ${PORT}`));
-process.on('unhandledRejection', (err) => { console.error(err); server.close(() => process.exit(1)); });
+// Only start local server if run directly (Vercel imports it instead)
+if (require.main === module) {
+  const PORT = process.env.PORT || 5000;
+  const server = app.listen(PORT, () => console.log(`🚀 BFHE v2 Server running on port ${PORT}`));
+  process.on('unhandledRejection', (err) => { console.error(err); server.close(() => process.exit(1)); });
+}
+
 module.exports = app;
