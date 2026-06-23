@@ -253,14 +253,14 @@ export default function BudgetPage() {
 
       <div style={{ height:16 }}/>
 
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))', gap:12, marginBottom:24 }}>
+      <div className="budget-stats" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))', gap:12, marginBottom:24 }}>
         <StatCard label="Monthly Income"  value={formatINR(income)}   sub="After tax"                           color="var(--teal)"  icon="💵" delay={0}/>
         <StatCard label="Needs Budget"    value={formatINR(needs)}    sub={`₹${actualNeeds.toLocaleString('en-IN')} actual`}   color={actualNeeds>needs?'var(--red)':'var(--gold)'}  icon="🏠" delay={0.05}/>
         <StatCard label="Wants Budget"    value={formatINR(wants)}    sub={`₹${actualWants.toLocaleString('en-IN')} actual`}   color={actualWants>wants?'var(--red)':'var(--blue)'}  icon="🛍️" delay={0.1}/>
         <StatCard label="Savings Target"  value={formatINR(savings)}  sub={`₹${Math.max(0,actualSavings).toLocaleString('en-IN')} actual`} color={actualSavings<savings?'var(--red)':'var(--green)'} icon="💰" delay={0.15}/>
       </div>
 
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
+      <div className="budget-charts" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
         {/* Sliders */}
         <motion.div initial={{opacity:0,y:12}} animate={{opacity:1,y:0}} transition={{delay:0.1}} className="card">
           <div style={{ fontFamily:'var(--font-display)', fontSize:15, fontWeight:800, marginBottom:20 }}>Customize Your Budget Split</div>

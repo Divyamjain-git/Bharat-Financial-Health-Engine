@@ -75,9 +75,9 @@ export default function DashboardPage() {
   const greeting = hour<12?'Good morning':hour<17?'Good afternoon':'Good evening';
 
   return (
-    <div style={{ padding: '28px 28px 48px' }}>
+    <div className="dash-page" style={{ padding: '28px 28px 48px' }}>
       {/* Header */}
-      <motion.div initial={{opacity:0,y:-10}} animate={{opacity:1,y:0}} style={{ marginBottom: 24, display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:12 }}>
+      <motion.div initial={{opacity:0,y:-10}} animate={{opacity:1,y:0}} className="dash-header" style={{ marginBottom: 24, display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:12 }}>
         <div>
           <h1 style={{ fontFamily:'var(--font-display)', fontSize:26, fontWeight:900, marginBottom:3 }}>{greeting}, {user?.name?.split(' ')[0]} 👋</h1>
           <p style={{ color:'var(--text-2)', fontSize:14 }}>Financial health overview {score && <span style={{color:'var(--text-3)'}}>· {getRelTime(score.createdAt)}</span>}</p>
@@ -91,7 +91,7 @@ export default function DashboardPage() {
       </motion.div>
 
       {/* Stat Row */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(190px,1fr))', gap:12, marginBottom:18 }}>
+      <div className="dash-stats" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(190px,1fr))', gap:12, marginBottom:18 }}>
         <StatCard label="Monthly Income" value={formatINR(metrics.monthlyIncome)} sub="After tax" color="var(--teal)" icon="💵" delay={0} />
         <StatCard label="Total EMI" value={formatINR(metrics.totalMonthlyEMI)} sub={`${metrics.dtiRatio?.toFixed(1)??0}% of income`} color={metrics.dtiRatio>50?'var(--red)':'var(--gold)'} icon="🏦" delay={0.05} />
         <StatCard label="Savings Rate" value={`${metrics.savingsRate?.toFixed(1)??0}%`} sub="Monthly" color={metrics.savingsRate>=20?'var(--green)':metrics.savingsRate>=10?'var(--gold)':'var(--red)'} icon="💰" delay={0.1} />
@@ -103,8 +103,8 @@ export default function DashboardPage() {
       {/* Main Grid */}
       <div className="dashboard-grid" style={{ gap:16, alignItems:'start' }}>
 
-        {/* LEFT */}
-        <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+        {/* LEFT — Score */}
+        <div className="dash-left" style={{ display:'flex', flexDirection:'column', gap:16 }}>
 
           {/* Score Gauge */}
           <motion.div initial={{opacity:0,scale:0.96}} animate={{opacity:1,scale:1}} transition={{delay:0.1}} className="card" style={{ textAlign:'center', position:'relative', overflow:'hidden' }}>
@@ -170,8 +170,8 @@ export default function DashboardPage() {
           </motion.div>
         </div>
 
-        {/* RIGHT */}
-        <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+        {/* RIGHT — Charts & Goals */}
+        <div className="dash-right" style={{ display:'flex', flexDirection:'column', gap:16 }}>
           {/* Score Trend */}
           <motion.div initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} transition={{delay:0.12}} className="card">
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>

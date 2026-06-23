@@ -53,24 +53,25 @@ function RecCard({ rec, index, isAI, isDone, onToggleDone, linkedGoal }) {
 
   return (
     <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: isDone ? 0.5 : 1, y: 0 }} transition={{ delay: index * 0.04 }}
-      style={{ background: 'var(--bg-card)', border: `1px solid ${expanded ? pri.border : 'var(--border)'}`, borderRadius: 14, overflow: 'hidden', transition: 'border-color 0.2s, opacity 0.3s', cursor: 'pointer', position: 'relative' }}
+      className="rec-card"
+      style={{ border: `1px solid ${expanded ? pri.border : 'var(--border)'}` }}
     >
       {/* Left accent bar */}
-      <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, background: pri.color, borderRadius: '14px 0 0 14px' }} />
+      <div className="rec-card-accent" style={{ background: pri.color }} />
 
       {/* Header */}
-      <div style={{ padding: '16px 16px 16px 20px', display: 'flex', alignItems: 'flex-start', gap: 12 }} onClick={() => setExpanded(e => !e)}>
-        <div style={{ width: 40, height: 40, borderRadius: 10, background: cat.dim, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>{cat.icon}</div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
+      <div className="rec-card-header" onClick={() => setExpanded(e => !e)}>
+        <div className="rec-card-icon" style={{ background: cat.dim }}>{cat.icon}</div>
+        <div className="rec-card-content">
+          <div className="rec-card-badges">
             <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.8, color: pri.color, background: pri.bg, border: `1px solid ${pri.border}`, borderRadius: 5, padding: '2px 7px' }}>{pri.label}</span>
             <span style={{ fontSize: 10, fontWeight: 700, color: cat.color, background: cat.dim, borderRadius: 5, padding: '2px 7px' }}>{cat.label}</span>
             {isAI && <span style={{ fontSize: 10, fontWeight: 700, color: '#9061F9', background: 'rgba(144,97,249,0.12)', borderRadius: 5, padding: '2px 7px' }}>✨ AI</span>}
             {rec.projectedScoreImpact > 0 && <span style={{ fontSize: 10, fontWeight: 700, color: '#0DCFAA', background: 'rgba(13,207,170,0.1)', borderRadius: 5, padding: '2px 7px' }}>+{rec.projectedScoreImpact} pts</span>}
             {rec.timeToComplete && <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-3)', background: 'var(--bg-elevated)', borderRadius: 5, padding: '2px 7px' }}>⏱ {rec.timeToComplete}</span>}
           </div>
-          <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 800, lineHeight: 1.3, marginBottom: 5, textDecoration: isDone ? 'line-through' : 'none' }}>{rec.title}</h3>
-          <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>{rec.description}</p>
+          <h3 className="rec-card-title" style={{ textDecoration: isDone ? 'line-through' : 'none' }}>{rec.title}</h3>
+          <p className="rec-card-desc">{rec.description}</p>
           {rec.impact && (
             <div style={{ marginTop: 8, display: 'inline-flex', alignItems: 'center', gap: 5, background: 'rgba(13,207,170,0.1)', border: '1px solid rgba(13,207,170,0.2)', borderRadius: 6, padding: '4px 10px' }}>
               <span style={{ fontSize: 12, color: '#0DCFAA', fontWeight: 700 }}>💰 {rec.impact}</span>
@@ -78,7 +79,7 @@ function RecCard({ rec, index, isAI, isDone, onToggleDone, linkedGoal }) {
           )}
         </div>
         {/* Right section: done button + expand */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+        <div className="rec-card-actions">
           <button onClick={e => { e.stopPropagation(); onToggleDone(); }}
             style={{ width: 32, height: 32, borderRadius: 8, border: `1px solid ${isDone ? 'rgba(49,196,141,0.3)' : 'var(--border)'}`, background: isDone ? 'rgba(49,196,141,0.15)' : 'var(--bg-elevated)', color: isDone ? '#31C48D' : 'var(--text-3)', fontSize: 15, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
             title={isDone ? 'Undo' : 'Mark Done'}>
@@ -92,7 +93,7 @@ function RecCard({ rec, index, isAI, isDone, onToggleDone, linkedGoal }) {
       <AnimatePresence>
         {expanded && (
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.25 }} style={{ overflow: 'hidden' }}>
-            <div style={{ borderTop: '1px solid var(--border)', padding: '16px 20px 18px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <div className="rec-card-details">
               {rec.actionStep && (
                 <div style={{ background: 'rgba(240,180,41,0.07)', border: '1px solid rgba(240,180,41,0.2)', borderRadius: 10, padding: '12px 14px' }}>
                   <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 }}>⚡ Action This Week</div>
@@ -154,7 +155,7 @@ function AIChatPanel({ financialContext }) {
   const suggestions = ['How can I reduce my DTI?', 'Best tax saving options for me?', 'Should I prepay my loan?', 'How to build emergency fund fast?'];
 
   return (
-    <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16, display: 'flex', flexDirection: 'column', height: '100%', minHeight: 400, maxHeight: 'calc(100vh - 200px)', overflow: 'hidden' }}>
+    <div className="rec-chat-panel">
       {/* Header */}
       <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)', background: 'linear-gradient(135deg, rgba(144,97,249,0.1), rgba(79,142,247,0.08))' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -204,7 +205,7 @@ function AIChatPanel({ financialContext }) {
       </div>
 
       {/* Input */}
-      <div style={{ borderTop: '1px solid var(--border)', padding: '10px 12px', display: 'flex', gap: 8 }}>
+      <div className="rec-chat-input-row">
         <input value={msg} onChange={e => setMsg(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSend()}
           placeholder="Ask about your finances..." style={{ flex: 1, background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 13, fontFamily: 'var(--font-body)', outline: 'none' }} />
         <button onClick={handleSend} disabled={chatLoading || !msg.trim()}
@@ -310,17 +311,17 @@ export default function RecommendationsPage() {
   });
 
   return (
-    <div style={{ padding: '24px 24px 48px', maxWidth: 1200, margin: '0 auto' }}>
+    <div className="rec-page">
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 14, marginBottom: 24 }}>
+      <div className="rec-header">
         <div>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 900, marginBottom: 4 }}>✨ Financial Insights</h1>
+          <h1>✨ Financial Insights</h1>
           <p style={{ fontSize: 13, color: 'var(--text-2)' }}>
             {filteredRecs.length} actionable steps to improve your financial health
             {aiLoading && <span style={{ color: 'var(--gold)', marginLeft: 8 }}>· Analysing new data...</span>}
           </p>
         </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <div className="rec-header-actions">
           <button onClick={() => setShowChat(c => !c)} style={{ padding: '7px 14px', borderRadius: 8, fontSize: 12, fontWeight: 700, background: showChat ? 'rgba(144,97,249,0.15)' : 'var(--bg-elevated)', color: showChat ? '#9061F9' : 'var(--text-2)', border: `1px solid ${showChat ? 'rgba(144,97,249,0.25)' : 'var(--border)'}`, cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
             {showChat ? '✨ Hide Chat' : '✨ Ask Gemini'}
           </button>
@@ -331,13 +332,13 @@ export default function RecommendationsPage() {
       </div>
 
       {/* 2-column layout */}
-      <div style={{ display: 'grid', gridTemplateColumns: showChat ? '1fr 380px' : '1fr', gap: 24, alignItems: 'start' }}>
+      <div className={`rec-layout ${showChat ? 'rec-layout--with-chat' : ''}`}>
         
         {/* LEFT COLUMN — Feed */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div className="rec-feed">
           
           {/* Horizontal Filters */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', background: 'var(--bg-card)', padding: '12px 16px', borderRadius: 12, border: '1px solid var(--border)' }}>
+          <div className="rec-filters">
             <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: 0.5, marginRight: 4 }}>Filter:</span>
             <button style={filterBtn(activeTab === 'all')} onClick={() => { setActiveTab('all'); setActiveFilter('all'); }}>All Insights</button>
             <button style={filterBtn(activeTab === 'done')} onClick={() => { setActiveTab('done'); setActiveFilter('all'); }}>✅ Completed ({doneCount})</button>
@@ -351,7 +352,7 @@ export default function RecommendationsPage() {
 
           {/* Loading State */}
           {aiLoading && activeTab === 'all' && aiRecs.length === 0 && (
-            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px', display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div className="rec-loading">
               <span className="spinner" style={{ width: 18, height: 18 }} />
               <div>
                 <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 2 }}>Gemini is analysing your finances...</div>
@@ -362,7 +363,7 @@ export default function RecommendationsPage() {
 
           {/* Feed */}
           {filteredRecs.length === 0 && !(aiLoading && activeTab === 'all') ? (
-            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, textAlign: 'center', padding: '60px 20px' }}>
+            <div className="rec-empty">
               <div style={{ fontSize: 36, marginBottom: 12 }}>{activeTab === 'done' ? '🎯' : '🎉'}</div>
               <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 800, marginBottom: 6 }}>
                 {activeTab === 'done' ? 'No completed items yet' : 'No insights found'}
@@ -372,7 +373,7 @@ export default function RecommendationsPage() {
               </div>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div className="rec-feed-list">
               {filteredRecs.map((rec, i) => (
                 <RecCard key={rec.id || rec._id || i} rec={rec} index={i} isAI={rec.source === 'gemini'}
                   isDone={doneIds.has(rec.id || rec._id)}
@@ -385,7 +386,7 @@ export default function RecommendationsPage() {
 
         {/* RIGHT COLUMN — AI Chat */}
         {showChat && (
-          <div style={{ position: 'sticky', top: 20 }}>
+          <div className="rec-chat-sticky">
             <AIChatPanel financialContext={financialContext} />
           </div>
         )}

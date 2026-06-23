@@ -33,7 +33,7 @@ export const StatCard = ({ label, value, sub, color = 'var(--gold)', icon, trend
       <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: 0.8 }}>{label}</div>
       {icon && <div style={{ fontSize: 18, opacity: 0.7 }}>{icon}</div>}
     </div>
-    <div style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 900, color, lineHeight: 1, marginBottom: 4, position: 'relative' }}>{value}</div>
+    <div className="dash-stat-value" style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 900, color, lineHeight: 1, marginBottom: 4, position: 'relative' }}>{value}</div>
     {sub && <div style={{ fontSize: 12, color: 'var(--text-2)', position: 'relative' }}>{sub}</div>}
     {trend !== undefined && (
       <div style={{ fontSize: 12, fontWeight: 700, color: trend >= 0 ? 'var(--green)' : 'var(--red)', marginTop: 4 }}>

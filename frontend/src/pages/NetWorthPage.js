@@ -202,7 +202,7 @@ export default function NetWorthPage() {
         action={<button className="btn btn-primary" onClick={()=>setShowForm(true)}>+ Add {tab==='assets'?'Asset':'Liability'}</button>}/>
 
       {/* Stats */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))', gap:12, marginBottom:24 }}>
+      <div className="nw-stats" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))', gap:12, marginBottom:24 }}>
         <StatCard label="Net Worth" value={formatINR(analysis?.netWorth||0)} sub={analysis?.netWorthGrade||'—'} color={nwColor} icon="📊" delay={0}/>
         <StatCard label="Total Assets" value={formatINR(analysis?.totalAssets||0)} sub={`${assets.length} items`} color="var(--teal)" icon="📈" delay={0.05}/>
         <StatCard label="Total Liabilities" value={formatINR(analysis?.totalLiabilities||0)} sub={`${liabilities.length} items`} color="var(--red)" icon="📉" delay={0.1}/>
@@ -211,7 +211,7 @@ export default function NetWorthPage() {
 
       {/* Charts Row */}
       {(assetData.length>0||liabData.length>0)&&(
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16, marginBottom:20 }}>
+        <div className="nw-charts" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16, marginBottom:20 }}>
           {assetData.length>0&&(
             <div className="card">
               <div style={{ fontFamily:'var(--font-display)', fontSize:14, fontWeight:800, marginBottom:14 }}>Asset Allocation</div>
