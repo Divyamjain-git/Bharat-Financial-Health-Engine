@@ -221,3 +221,13 @@ Rule-based system generating up to **8 personalized recommendations** covering:
 - Tax advice referencing Section 80C, 80CCD
 - Recommendations referencing Indian financial products (PPF, ELSS, NPS, CIBIL)
 - Phone validation for Indian numbers (6–9 prefix, 10 digits)
+
+---
+
+## 📱 Mobile-First UI
+
+BFHE is designed to be fully responsive, ensuring a seamless experience across all devices.
+- **Dashboard**: Smart grid reflow that stacks the Score Gauge, Key Ratios, and Stat Cards elegantly on mobile viewports.
+- **Net Worth**: Pie charts and metrics automatically adjust to a single-column layout on smaller screens to prevent horizontal scrolling.
+- **Budget Planner**: Side-by-side sliders and bar charts smartly wrap to maintain readability and interactivity on mobile.
+- **Recommendations**: Flexible multi-column layouts collapse cleanly to a unified list.
