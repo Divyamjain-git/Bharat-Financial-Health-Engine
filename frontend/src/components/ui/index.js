@@ -18,25 +18,23 @@ export const StatCard = ({ label, value, sub, color = 'var(--gold)', icon, trend
     initial={{ opacity: 0, y: 16 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay, duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+    className="glass-card"
     style={{
-      background: 'var(--bg-card)',
-      border: `1px solid ${color}22`,
-      borderRadius: 'var(--r-lg)',
-      padding: '18px 20px',
+      padding: '20px 24px',
       position: 'relative',
       overflow: 'hidden'
     }}
   >
     {/* Background glow */}
-    <div style={{ position: 'absolute', top: -20, right: -20, width: 80, height: 80, borderRadius: '50%', background: color + '10', filter: 'blur(20px)', pointerEvents: 'none' }} />
-    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10, position: 'relative' }}>
-      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: 0.8 }}>{label}</div>
-      {icon && <div style={{ fontSize: 18, opacity: 0.7 }}>{icon}</div>}
+    <div style={{ position: 'absolute', top: -20, right: -20, width: 90, height: 90, borderRadius: '50%', background: color + '15', filter: 'blur(24px)', pointerEvents: 'none' }} />
+    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12, position: 'relative' }}>
+      <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: 1.2 }}>{label}</div>
+      {icon && <div style={{ fontSize: 18, opacity: 0.9, color }}>{icon}</div>}
     </div>
-    <div className="dash-stat-value" style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 900, color, lineHeight: 1, marginBottom: 4, position: 'relative' }}>{value}</div>
-    {sub && <div style={{ fontSize: 12, color: 'var(--text-2)', position: 'relative' }}>{sub}</div>}
+    <div className="dash-stat-value" style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 900, color, lineHeight: 1, marginBottom: 6, position: 'relative', letterSpacing: -0.5 }}>{value}</div>
+    {sub && <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', position: 'relative' }}>{sub}</div>}
     {trend !== undefined && (
-      <div style={{ fontSize: 12, fontWeight: 700, color: trend >= 0 ? 'var(--green)' : 'var(--red)', marginTop: 4 }}>
+      <div style={{ fontSize: 12, fontWeight: 800, color: trend >= 0 ? 'var(--green)' : 'var(--red)', marginTop: 6 }}>
         {trend >= 0 ? '▲' : '▼'} {Math.abs(trend).toFixed(1)}% vs last month
       </div>
     )}
@@ -47,12 +45,12 @@ export const StatCard = ({ label, value, sub, color = 'var(--gold)', icon, trend
 export const ProgressBar = ({ value, max = 100, color = 'var(--gold)', height = 6, animated = true }) => {
   const pct = Math.min(100, Math.max(0, (value / max) * 100));
   return (
-    <div style={{ height, background: 'var(--bg-elevated)', borderRadius: height / 2, overflow: 'hidden' }}>
+    <div style={{ height, background: 'rgba(255,255,255,0.06)', borderRadius: height / 2, overflow: 'hidden' }}>
       <motion.div
         initial={animated ? { width: 0 } : { width: `${pct}%` }}
         animate={{ width: `${pct}%` }}
         transition={{ duration: 0.9, ease: [0.25, 0.46, 0.45, 0.94] }}
-        style={{ height: '100%', background: color, borderRadius: height / 2 }}
+        style={{ height: '100%', background: color, borderRadius: height / 2, boxShadow: `0 0 10px ${color}66` }}
       />
     </div>
   );
@@ -60,14 +58,14 @@ export const ProgressBar = ({ value, max = 100, color = 'var(--gold)', height = 
 
 // ── SectionCard ───────────────────────────────────────────────────────────────
 export const SectionCard = ({ title, subtitle, action, children, style = {} }) => (
-  <div className="card" style={{ ...style }}>
+  <div className="glass-card" style={{ ...style }}>
     {(title || action) && (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: subtitle ? 4 : 16 }}>
-        <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 800, color: 'var(--text)' }}>{title}</div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: subtitle ? 6 : 20 }}>
+        <div style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 900, color: '#FFFFFF', letterSpacing: 0.5, textTransform: 'uppercase' }}>{title}</div>
         {action && <div>{action}</div>}
       </div>
     )}
-    {subtitle && <div style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 16 }}>{subtitle}</div>}
+    {subtitle && <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginBottom: 20 }}>{subtitle}</div>}
     {children}
   </div>
 );

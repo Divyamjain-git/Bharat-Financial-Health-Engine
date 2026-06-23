@@ -12,7 +12,7 @@ import { StatCard, SectionCard, ProgressBar, EmptyState } from '../components/ui
 import { formatINR, getScoreColor } from '../utils/currency';
 import RecommendationPanel from '../components/dashboard/RecommendationPanel';
 
-const COLORS = ['#F0B429','#0DCFAA','#4F8EF7','#F05252','#9061F9','#FF8A4C','#31C48D','#FB923C'];
+const COLORS = ['#D4AF37', '#0DCFAA', '#b8860b', '#23D160', '#F5D76E', '#4F8EF7', '#FF4A4A', '#9061F9'];
 
 export default function DashboardPage() {
   const dispatch = useDispatch();
@@ -190,7 +190,7 @@ export default function DashboardPage() {
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false}/>
                   <XAxis dataKey="date" tick={{fill:'var(--text-3)',fontSize:11}} axisLine={false} tickLine={false}/>
                   <YAxis domain={[0,100]} tick={{fill:'var(--text-3)',fontSize:11}} axisLine={false} tickLine={false}/>
-                  <Tooltip formatter={(v)=>[v,'Score']} contentStyle={{background:'var(--bg-elevated)',border:'1px solid var(--border)',borderRadius:8,fontSize:13}}/>
+                  <Tooltip formatter={(v)=>[v,'Score']} contentStyle={{ background: 'rgba(15,15,15,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 13, boxShadow: '0 8px 24px rgba(0,0,0,0.8)' }} itemStyle={{ color: '#fff', fontWeight: 600 }} cursor={{ stroke: 'rgba(255,255,255,0.1)' }} />
                   <Area type="monotone" dataKey="score" stroke={scoreColor} strokeWidth={2.5} fill="url(#sg)" dot={false} activeDot={{r:5,fill:scoreColor,strokeWidth:2,stroke:'var(--bg-card)'}}/>
                 </AreaChart>
               </ResponsiveContainer>
@@ -210,7 +210,7 @@ export default function DashboardPage() {
                       <Pie data={expenseData} cx="50%" cy="50%" innerRadius={40} outerRadius={60} paddingAngle={2} dataKey="value">
                         {expenseData.map((_,i)=><Cell key={i} fill={COLORS[i%COLORS.length]} stroke="none"/>)}
                       </Pie>
-                      <Tooltip formatter={(v)=>[formatINR(v)]} contentStyle={{background:'var(--bg-elevated)',border:'1px solid var(--border)',borderRadius:8,fontSize:12}}/>
+                      <Tooltip formatter={(value, name) => [formatINR(value), name]} contentStyle={{ background: 'rgba(15,15,15,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.8)' }} itemStyle={{ color: '#fff', fontWeight: 600 }} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
                     </PieChart>
                   </ResponsiveContainer>
                   {expenseData.slice(0,4).map((item,i)=>(

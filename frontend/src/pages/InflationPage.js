@@ -842,7 +842,7 @@ export default function InflationPage() {
                         <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                         <XAxis dataKey="month" tick={{ fill: 'var(--text-3)', fontSize: 10 }} />
                         <YAxis tick={{ fill: 'var(--text-3)', fontSize: 10 }} domain={[0, 'auto']} />
-                        <Tooltip content={<ChartTooltip prefix="" />} />
+                        <Tooltip content={<ChartTooltip prefix="" />} cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1 }} />
                         <ReferenceLine y={4} stroke="var(--blue)" strokeDasharray="4 3" label={{ value: 'RBI 4%', fill: 'var(--blue)', fontSize: 10 }} />
                         <ReferenceLine y={2} stroke="var(--green)" strokeDasharray="4 3" label={{ value: '2%', fill: 'var(--green)', fontSize: 10 }} />
                         <ReferenceLine y={6} stroke="var(--red)" strokeDasharray="4 3" label={{ value: '6%', fill: 'var(--red)', fontSize: 10 }} />
@@ -908,7 +908,7 @@ export default function InflationPage() {
                     </div>
                   </div>
                   <button className="btn btn-primary w-full" onClick={runGoalPlanner} disabled={goalLoading || !goalForm.nominalTarget || !goalForm.yearsToGoal}>
-                    {goalLoading ? <><span className="spinner" /> Calculating…</> : '▶ Calculate Inflation-Adjusted Goal'}
+                    {goalLoading ? <><span className="spinner" /> Calculating…</> : '▶ Calculate Inflation '}
                   </button>
                 </div>
               </div>
@@ -974,7 +974,7 @@ export default function InflationPage() {
                             <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                             <XAxis dataKey="year" tick={{ fill: 'var(--text-3)', fontSize: 10 }} label={{ value: 'Year', position: 'insideBottom', fill: 'var(--text-3)', fontSize: 10 }} />
                             <YAxis tick={{ fill: 'var(--text-3)', fontSize: 10 }} tickFormatter={v => '₹' + (v / 100000).toFixed(0) + 'L'} />
-                            <Tooltip content={<ChartTooltip />} />
+                            <Tooltip content={<ChartTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1 }} />
                             <Line type="monotone" dataKey="sipAccumulated" stroke="var(--gold)" strokeWidth={2} dot={false} name="SIP Accumulated" />
                             <Line type="monotone" dataKey="nominalCost" stroke="var(--red)" strokeWidth={2} strokeDasharray="5 3" dot={false} name="Inflation-Adj. Cost" />
                           </LineChart>
@@ -1071,7 +1071,7 @@ export default function InflationPage() {
                           <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                           <XAxis dataKey="year" tick={{ fill: 'var(--text-3)', fontSize: 10 }} label={{ value: 'Year', fill: 'var(--text-3)', fontSize: 10 }} />
                           <YAxis tick={{ fill: 'var(--text-3)', fontSize: 10 }} tickFormatter={v => '₹' + (v / 1000).toFixed(0) + 'k'} />
-                          <Tooltip content={<ChartTooltip />} />
+                          <Tooltip content={<ChartTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1 }} />
                           <Bar dataKey="realValue" fill="var(--teal)" name="Real Value" radius={[4, 4, 0, 0]} />
                           <Bar dataKey="nominalValue" fill="var(--bg-elevated)" name="Nominal Value" radius={[4, 4, 0, 0]} />
                         </BarChart>
@@ -1225,7 +1225,7 @@ export default function InflationPage() {
                           <XAxis dataKey="year" tick={{ fill: 'var(--text-3)', fontSize: 10 }} />
                           <YAxis yAxisId="score" domain={[0, 100]} tick={{ fill: 'var(--text-3)', fontSize: 10 }} />
                           <YAxis yAxisId="income" orientation="right" tick={{ fill: 'var(--text-3)', fontSize: 10 }} tickFormatter={v => '₹' + (v / 1000).toFixed(0) + 'k'} />
-                          <Tooltip content={<ChartTooltip prefix="" />} />
+                          <Tooltip content={<ChartTooltip prefix="" />} cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1 }} />
                           <Line yAxisId="score" type="monotone" dataKey="simulatedScore" stroke="var(--gold)" strokeWidth={2} dot={{ fill: 'var(--gold)', r: 4 }} name="Score" />
                           <Line yAxisId="income" type="monotone" dataKey="realIncome" stroke="var(--teal)" strokeWidth={2} strokeDasharray="5 3" dot={false} name="Real Income" />
                           <Line yAxisId="income" type="monotone" dataKey="inflatedExpenses" stroke="var(--red)" strokeWidth={1.5} strokeDasharray="4 2" dot={false} name="Expenses" />

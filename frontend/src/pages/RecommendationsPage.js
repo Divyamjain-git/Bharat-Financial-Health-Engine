@@ -8,21 +8,21 @@ import { fetchNetWorth } from '../store/slices/netWorthSlice';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const CATEGORY_META = {
-  debt:       { label: 'Debt',       icon: '💳', color: '#F05252', dim: 'rgba(240,82,82,0.12)' },
-  savings:    { label: 'Savings',    icon: '🏦', color: '#F0B429', dim: 'rgba(240,180,41,0.12)' },
-  emergency:  { label: 'Emergency',  icon: '🛡️', color: '#4F8EF7', dim: 'rgba(79,142,247,0.12)' },
-  credit:     { label: 'Credit',     icon: '📊', color: '#9061F9', dim: 'rgba(144,97,249,0.12)' },
+  debt: { label: 'Debt', icon: '💳', color: '#F05252', dim: 'rgba(240,82,82,0.12)' },
+  savings: { label: 'Savings', icon: '🏦', color: '#F0B429', dim: 'rgba(240,180,41,0.12)' },
+  emergency: { label: 'Emergency', icon: '🛡️', color: '#4F8EF7', dim: 'rgba(79,142,247,0.12)' },
+  credit: { label: 'Credit', icon: '📊', color: '#9061F9', dim: 'rgba(144,97,249,0.12)' },
   investment: { label: 'Investment', icon: '📈', color: '#0DCFAA', dim: 'rgba(13,207,170,0.12)' },
-  expense:    { label: 'Expense',    icon: '🧾', color: '#FF8A4C', dim: 'rgba(255,138,76,0.12)' },
-  tax:        { label: 'Tax',        icon: '🏛️', color: '#31C48D', dim: 'rgba(49,196,141,0.12)' },
-  insurance:  { label: 'Insurance',  icon: '🔒', color: '#8B5CF6', dim: 'rgba(139,92,246,0.12)' },
-  goal:       { label: 'Goal',       icon: '🎯', color: '#F59E0B', dim: 'rgba(245,158,11,0.12)' },
+  expense: { label: 'Expense', icon: '🧾', color: '#FF8A4C', dim: 'rgba(255,138,76,0.12)' },
+  tax: { label: 'Tax', icon: '🏛️', color: '#31C48D', dim: 'rgba(49,196,141,0.12)' },
+  insurance: { label: 'Insurance', icon: '🔒', color: '#8B5CF6', dim: 'rgba(139,92,246,0.12)' },
+  goal: { label: 'Goal', icon: '🎯', color: '#F59E0B', dim: 'rgba(245,158,11,0.12)' },
 };
 const PRIORITY_META = {
   critical: { label: 'Critical', color: '#EF4444', bg: 'rgba(239,68,68,0.12)', border: 'rgba(239,68,68,0.3)' },
-  high:     { label: 'High',     color: '#F0B429', bg: 'rgba(240,180,41,0.12)', border: 'rgba(240,180,41,0.3)' },
-  medium:   { label: 'Medium',   color: '#4F8EF7', bg: 'rgba(79,142,247,0.12)', border: 'rgba(79,142,247,0.3)' },
-  low:      { label: 'Low',      color: '#31C48D', bg: 'rgba(49,196,141,0.12)', border: 'rgba(49,196,141,0.3)' },
+  high: { label: 'High', color: '#F0B429', bg: 'rgba(240,180,41,0.12)', border: 'rgba(240,180,41,0.3)' },
+  medium: { label: 'Medium', color: '#4F8EF7', bg: 'rgba(79,142,247,0.12)', border: 'rgba(79,142,247,0.3)' },
+  low: { label: 'Low', color: '#31C48D', bg: 'rgba(49,196,141,0.12)', border: 'rgba(49,196,141,0.3)' },
 };
 const fmt = (n) => n != null ? `₹${Number(n).toLocaleString('en-IN')}` : '—';
 
@@ -33,13 +33,13 @@ function ScoreRing({ score, grade, size = 100 }) {
   return (
     <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={size*0.08} />
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={size*0.08}
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={size * 0.08} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={size * 0.08}
           strokeDasharray={`${dash} ${circ}`} strokeLinecap="round" style={{ transition: 'stroke-dasharray 1s ease' }} />
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <span style={{ fontFamily: 'var(--font-display)', fontSize: size*0.24, fontWeight: 900, color, lineHeight: 1 }}>{score}</span>
-        <span style={{ fontSize: size*0.09, color: 'var(--text-3)', fontWeight: 700, letterSpacing: 0.5 }}>{grade}</span>
+        <span style={{ fontFamily: 'var(--font-display)', fontSize: size * 0.24, fontWeight: 900, color, lineHeight: 1 }}>{score}</span>
+        <span style={{ fontSize: size * 0.09, color: 'var(--text-3)', fontWeight: 700, letterSpacing: 0.5 }}>{grade}</span>
       </div>
     </div>
   );
@@ -252,21 +252,21 @@ export default function RecommendationsPage() {
   };
 
   // Metrics
-  const metrics  = score?.metrics ?? score ?? {};
-  const comps    = score?.components ?? {};
-  const dtiScore       = comps.dtiScore       ?? score?.dtiScore       ?? 0;
-  const savingsScore   = comps.savingsScore   ?? score?.savingsScore   ?? 0;
+  const metrics = score?.metrics ?? score ?? {};
+  const comps = score?.components ?? {};
+  const dtiScore = comps.dtiScore ?? score?.dtiScore ?? 0;
+  const savingsScore = comps.savingsScore ?? score?.savingsScore ?? 0;
   const emergencyScore = comps.emergencyScore ?? score?.emergencyScore ?? 0;
-  const creditScore    = comps.creditScore    ?? score?.creditScore    ?? 0;
-  const expenseScore   = comps.expenseScore   ?? score?.expenseScore   ?? 0;
-  const income       = metrics.monthlyIncome        ?? 0;
-  const totalEMI     = metrics.totalMonthlyEMI      ?? 0;
-  const totalExp     = metrics.totalMonthlyExpenses ?? 0;
-  const savingsRate  = metrics.savingsRate           ?? 0;
-  const dtiRatio     = metrics.dtiRatio              ?? 0;
-  const creditUtil   = metrics.creditUtilization     ?? 0;
-  const emergencyMos = metrics.emergencyFundMonths   ?? 0;
-  const disposable   = income - totalEMI - totalExp;
+  const creditScore = comps.creditScore ?? score?.creditScore ?? 0;
+  const expenseScore = comps.expenseScore ?? score?.expenseScore ?? 0;
+  const income = metrics.monthlyIncome ?? 0;
+  const totalEMI = metrics.totalMonthlyEMI ?? 0;
+  const totalExp = metrics.totalMonthlyExpenses ?? 0;
+  const savingsRate = metrics.savingsRate ?? 0;
+  const dtiRatio = metrics.dtiRatio ?? 0;
+  const creditUtil = metrics.creditUtilization ?? 0;
+  const emergencyMos = metrics.emergencyFundMonths ?? 0;
+  const disposable = income - totalEMI - totalExp;
 
   // Build rec lists
   const aiRecs = useMemo(() => (aiRecommendations || []).map(r => ({ ...r, source: 'gemini' })), [aiRecommendations]);
@@ -333,10 +333,10 @@ export default function RecommendationsPage() {
 
       {/* 2-column layout */}
       <div className={`rec-layout ${showChat ? 'rec-layout--with-chat' : ''}`}>
-        
+
         {/* LEFT COLUMN — Feed */}
         <div className="rec-feed">
-          
+
           {/* Horizontal Filters */}
           <div className="rec-filters">
             <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: 0.5, marginRight: 4 }}>Filter:</span>

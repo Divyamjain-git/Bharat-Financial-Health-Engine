@@ -211,7 +211,7 @@ export default function SimulationPage() {
                   <PolarAngleAxis dataKey="metric" tick={{fill:'var(--text-3)',fontSize:11}}/>
                   <Radar name="You"   dataKey="user" stroke="var(--gold)" fill="var(--gold)" fillOpacity={0.15} strokeWidth={2}/>
                   <Radar name="Peers" dataKey="peer" stroke="var(--blue)" fill="var(--blue)" fillOpacity={0.08} strokeWidth={1.5} strokeDasharray="4 2"/>
-                  <Tooltip contentStyle={{background:'var(--bg-elevated)',border:'1px solid var(--border)',borderRadius:8,fontSize:12}}/>
+                  <Tooltip contentStyle={{ background: 'rgba(15,15,15,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.8)' }} itemStyle={{ color: '#fff', fontWeight: 600 }} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
                 </RadarChart>
               </ResponsiveContainer>
               <div style={{ display:'flex', justifyContent:'center', gap:20, marginTop:6, fontSize:12 }}>

@@ -57,7 +57,7 @@ function Typewriter({ words }) {
   return (
     <span>
       {text}
-      <span style={{ borderRight: '3px solid #F0B429', marginLeft: 2, animation: 'blink 1s step-end infinite' }}/>
+      <span style={{ borderRight: '3px solid #D4AF37', marginLeft: 2, animation: 'blink 1s step-end infinite' }}/>
     </span>
   );
 }
@@ -122,7 +122,7 @@ function ScoreMockup() {
     return () => clearTimeout(t);
   }, []);
 
-  const color = score >= 80 ? '#31C48D' : score >= 65 ? '#4F8EF7' : score >= 50 ? '#F0B429' : '#F05252';
+  const color = score >= 80 ? '#31C48D' : score >= 65 ? '#4F8EF7' : score >= 50 ? '#D4AF37' : '#F05252';
 
   return (
     <motion.div
@@ -130,15 +130,16 @@ function ScoreMockup() {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ delay: 0.5, duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
       style={{
-        background: 'rgba(10,15,28,0.95)',
-        border: '1px solid rgba(255,255,255,0.08)',
+        background: 'linear-gradient(145deg, #161616 0%, #0a0a0a 100%)',
+        border: '1px solid rgba(255,255,255,0.03)',
+        borderTop: '1px solid rgba(255,255,255,0.08)',
+        borderLeft: '1px solid rgba(255,255,255,0.05)',
         borderRadius: 20,
         padding: '0',
         overflow: 'hidden',
-        boxShadow: '0 40px 100px rgba(0,0,0,0.6), 0 0 0 1px rgba(240,180,41,0.1)',
+        boxShadow: '-8px -8px 16px rgba(255,255,255,0.03), 20px 20px 40px rgba(0,0,0,0.95), inset 0 1px 1px rgba(255,255,255,0.05)',
         maxWidth: 600,
         width: '100%',
-        backdropFilter: 'blur(20px)',
       }}
     >
       {/* Window chrome */}
@@ -159,7 +160,7 @@ function ScoreMockup() {
             <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 3 }}>Financial Health Score</div>
             <div style={{ fontFamily: "'Cabinet Grotesk', sans-serif", fontSize: 13, fontWeight: 800, color: 'rgba(255,255,255,0.8)' }}>Arjun Sharma · Salaried</div>
           </div>
-          <div style={{ background: 'rgba(240,180,41,0.1)', border: '1px solid rgba(240,180,41,0.2)', borderRadius: 8, padding: '6px 12px', fontSize: 11, color: '#F0B429', fontWeight: 700 }}>
+          <div style={{ background: 'rgba(240,180,41,0.1)', border: '1px solid rgba(240,180,41,0.2)', borderRadius: 8, padding: '6px 12px', fontSize: 11, color: '#D4AF37', fontWeight: 700 }}>
             ↻ Updated just now
           </div>
         </div>
@@ -183,7 +184,7 @@ function ScoreMockup() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {[
               { label: 'Debt-to-Income', value: 72, color: '#4F8EF7' },
-              { label: 'Savings Rate', value: 65, color: '#F0B429' },
+              { label: 'Savings Rate', value: 65, color: '#D4AF37' },
               { label: 'Emergency Fund', value: 50, color: '#F05252' },
               { label: 'Credit Usage', value: 88, color: '#31C48D' },
               { label: 'Expense Ratio', value: 78, color: '#9061F9' },
@@ -210,7 +211,7 @@ function ScoreMockup() {
         <div style={{ display: 'flex', gap: 8, marginTop: 20, flexWrap: 'wrap' }}>
           {[
             { label: 'Income', value: '₹85,000', c: '#0DCFAA' },
-            { label: 'EMI', value: '₹18,500', c: '#F0B429' },
+            { label: 'EMI', value: '₹18,500', c: '#D4AF37' },
             { label: 'Savings', value: '19.4%', c: '#4F8EF7' },
             { label: 'Net Worth', value: '₹12.4L', c: '#9061F9' },
           ].map((m, i) => (
@@ -230,7 +231,7 @@ function ScoreMockup() {
 }
 
 // ── Feature card ──────────────────────────────────────────────────────────────
-function FeatureCard({ icon, title, desc, stat, statLabel, delay, color = '#F0B429' }) {
+function FeatureCard({ icon, title, desc, stat, statLabel, delay, color = '#D4AF37' }) {
   const [ref, inView] = useInView();
   return (
     <motion.div ref={ref}
@@ -238,15 +239,19 @@ function FeatureCard({ icon, title, desc, stat, statLabel, delay, color = '#F0B4
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ delay, duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
       style={{
-        background: 'rgba(10,15,28,0.7)',
-        border: '1px solid rgba(255,255,255,0.07)',
+        background: 'linear-gradient(145deg, #141414 0%, #0a0a0a 100%)',
+        border: '1px solid rgba(255,255,255,0.02)',
+        borderTop: '1px solid rgba(255,255,255,0.06)',
+        borderLeft: '1px solid rgba(255,255,255,0.04)',
+        boxShadow: '-4px -4px 10px rgba(255,255,255,0.02), 8px 8px 20px rgba(0,0,0,0.85)',
         borderRadius: 16,
         padding: '28px 24px',
-        backdropFilter: 'blur(10px)',
-        transition: 'border-color 0.2s, transform 0.2s',
+        transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
         cursor: 'default',
+        overflow: 'hidden',
+        position: 'relative'
       }}
-      whileHover={{ y: -4, borderColor: color + '40' }}
+      whileHover={{ y: -5, boxShadow: `-6px -6px 12px rgba(255,255,255,0.03), 12px 12px 24px rgba(0,0,0,0.95), inset 0 1px 1px ${color}40`, borderTop: `1px solid ${color}80` }}
     >
       <div style={{ fontSize: 32, marginBottom: 14 }}>{icon}</div>
       <div style={{ fontFamily: "'Cabinet Grotesk', sans-serif", fontSize: 18, fontWeight: 800, color: '#EEF2FF', marginBottom: 8 }}>{title}</div>
@@ -307,7 +312,7 @@ export default function LandingPage() {
   const COMPANY_LOGOS = ['SBI', 'HDFC', 'ICICI', 'Bajaj', 'Zerodha', 'Groww', 'Razorpay', 'PhonePe', 'Paytm', 'CRED'];
 
   return (
-    <div style={{ background: '#050810', color: '#EEF2FF', fontFamily: "'Instrument Sans', sans-serif", overflowX: 'hidden' }}>
+    <div style={{ background: '#000000', color: '#FFFFFF', fontFamily: "'Instrument Sans', sans-serif", overflowX: 'hidden' }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Cabinet+Grotesk:wght@400;500;700;800;900&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap');
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
@@ -316,7 +321,7 @@ export default function LandingPage() {
         @keyframes glow { 0%,100%{opacity:0.4} 50%{opacity:0.8} }
         html { scroll-behavior: smooth; }
         ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: rgba(240,180,41,0.3); border-radius: 2px; }
+        ::-webkit-scrollbar-thumb { background: rgba(212,175,55,0.3); border-radius: 2px; }
       `}</style>
 
       {/* ── NAVBAR ──────────────────────────────────────────────────────────── */}
@@ -324,28 +329,29 @@ export default function LandingPage() {
         className="landing-nav"
         style={{
           position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
-          background: scrolled ? 'rgba(5,8,16,0.92)' : 'transparent',
-          borderBottom: scrolled ? '1px solid rgba(255,255,255,0.07)' : '1px solid transparent',
-          backdropFilter: scrolled ? 'blur(20px)' : 'none',
+          background: scrolled ? 'rgba(0,0,0,0.85)' : 'transparent',
+          borderBottom: scrolled ? '1px solid rgba(255,255,255,0.05)' : '1px solid transparent',
+          backdropFilter: scrolled ? 'blur(24px)' : 'none',
+          WebkitBackdropFilter: scrolled ? 'blur(24px)' : 'none',
           transition: 'all 0.3s',
           padding: '0 32px',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          height: 64,
+          height: 70,
         }}
       >
         {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 34, height: 34, borderRadius: 9, background: 'linear-gradient(135deg,#F0B429,#d4960f)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 14, color: '#050810' }}>₹</div>
+          <div style={{ width: 34, height: 34, borderRadius: 9, background: 'linear-gradient(135deg,#D4AF37,#b8860b)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 14, color: '#000000' }}>₹</div>
           <div>
-            <div style={{ fontFamily: "'Cabinet Grotesk', sans-serif", fontSize: 15, fontWeight: 900, letterSpacing: 2 }}>BFHE</div>
-            <div className="hide-on-mobile" style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', letterSpacing: 0.5, marginTop: -2 }}>BHARAT FINANCIAL HEALTH ENGINE</div>
+            <div style={{ fontFamily: "'Cabinet Grotesk', sans-serif", fontSize: 16, fontWeight: 900, letterSpacing: 2.5, textTransform: 'uppercase' }}>BFHE</div>
+            <div className="hide-on-mobile" style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', letterSpacing: 0.8, marginTop: -2, textTransform: 'uppercase' }}>BHARAT FINANCIAL HEALTH ENGINE</div>
           </div>
         </div>
 
         {/* Nav links */}
         <div className="hide-on-mobile" style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
           {['Features', 'How it Works', 'Pricing'].map(l => (
-            <a key={l} href={`#${l.toLowerCase().replace(' ','-')}`} style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.55)', textDecoration: 'none', fontWeight: 500, transition: 'color 0.15s' }}
+            <a key={l} href={`#${l.toLowerCase().replace(' ','-')}`} style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.55)', textDecoration: 'none', fontWeight: 600, letterSpacing: 0.5, transition: 'color 0.2s', textTransform: 'uppercase' }}
               onMouseEnter={e => e.target.style.color = '#fff'}
               onMouseLeave={e => e.target.style.color = 'rgba(255,255,255,0.55)'}>
               {l}
@@ -355,15 +361,12 @@ export default function LandingPage() {
 
         {/* CTA */}
         <div style={{ display: 'flex', gap: 10 }}>
-          <button className="hide-on-mobile" onClick={() => navigate('/login')} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 8, padding: '7px 16px', color: 'rgba(255,255,255,0.8)', cursor: 'pointer', fontSize: 13, fontFamily: "'Instrument Sans', sans-serif", fontWeight: 600, transition: 'all 0.15s' }}
-            onMouseEnter={e => { e.target.style.borderColor = '#F0B429'; e.target.style.color = '#F0B429'; }}
-            onMouseLeave={e => { e.target.style.borderColor = 'rgba(255,255,255,0.15)'; e.target.style.color = 'rgba(255,255,255,0.8)'; }}>
-            Sign In
+          <button className="hide-on-mobile btn btn-secondary" onClick={() => navigate('/login')}>
+            SIGN IN
           </button>
-          <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-            onClick={() => navigate('/register')}
-            style={{ background: 'linear-gradient(135deg,#F0B429,#d4960f)', border: 'none', borderRadius: 8, padding: '7px 18px', color: '#050810', cursor: 'pointer', fontSize: 13, fontFamily: "'Instrument Sans', sans-serif", fontWeight: 800 }}>
-            Get Started Free
+          <motion.button className="btn btn-primary" whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+            onClick={() => navigate('/register')}>
+            GET STARTED
           </motion.button>
         </div>
       </motion.nav>
@@ -372,9 +375,9 @@ export default function LandingPage() {
       <section style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', overflow: 'hidden', paddingTop: 64 }}>
         <ParticleCanvas />
 
-        {/* Radial glow */}
-        <div style={{ position: 'absolute', top: '30%', left: '50%', transform: 'translate(-50%,-50%)', width: 800, height: 600, background: 'radial-gradient(ellipse, rgba(240,180,41,0.07) 0%, transparent 70%)', pointerEvents: 'none', animation: 'glow 4s ease-in-out infinite' }}/>
-        <div style={{ position: 'absolute', top: '60%', left: '20%', width: 400, height: 400, background: 'radial-gradient(ellipse, rgba(79,142,247,0.06) 0%, transparent 70%)', pointerEvents: 'none' }}/>
+        {/* Ambient Radial Glows for CRED-like rich background */}
+        <div style={{ position: 'absolute', top: '10%', left: '30%', transform: 'translate(-50%,-50%)', width: 900, height: 900, background: 'radial-gradient(circle, rgba(212,175,55,0.06) 0%, transparent 60%)', pointerEvents: 'none', filter: 'blur(60px)' }}/>
+        <div style={{ position: 'absolute', top: '80%', right: '10%', width: 700, height: 700, background: 'radial-gradient(circle, rgba(13,207,170,0.04) 0%, transparent 60%)', pointerEvents: 'none', filter: 'blur(50px)' }}/>
 
         <div className="landing-hero-grid" style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 1200, margin: '0 auto', padding: '80px 40px' }}>
 
@@ -385,9 +388,9 @@ export default function LandingPage() {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(240,180,41,0.1)', border: '1px solid rgba(240,180,41,0.25)', borderRadius: 20, padding: '5px 14px', marginBottom: 28, fontSize: 12, color: '#F0B429', fontWeight: 600, cursor: 'pointer' }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#F0B429', animation: 'glow 1.5s ease-in-out infinite' }}/>
-              India's First AI-Powered Financial Health Score
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(212,175,55,0.05)', border: '1px solid rgba(212,175,55,0.15)', borderRadius: 30, padding: '6px 16px', marginBottom: 30, fontSize: 11, color: '#D4AF37', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, cursor: 'pointer' }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#D4AF37', animation: 'glow 1.5s ease-in-out infinite' }}/>
+              India's First AI Financial Engine
               <span style={{ opacity: 0.6 }}>→</span>
             </motion.div>
 
@@ -396,12 +399,12 @@ export default function LandingPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.7 }}
-              style={{ fontFamily: "'Cabinet Grotesk', sans-serif", fontSize: 'clamp(36px, 5vw, 60px)', fontWeight: 900, lineHeight: 1.08, letterSpacing: -1.5, marginBottom: 20 }}>
-              The future of{' '}
-              <span style={{ color: '#F0B429', display: 'inline-block', animation: 'float 3s ease-in-out infinite' }}>financial</span>
-              <br />health starts{' '}
-              <span style={{ background: 'linear-gradient(135deg, #F0B429, #0DCFAA)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                <Typewriter words={['here.', 'today.', 'with you.', 'for India.']} />
+              style={{ fontFamily: "'Cabinet Grotesk', sans-serif", fontSize: 'clamp(42px, 6vw, 76px)', fontWeight: 900, lineHeight: 1.05, letterSpacing: -2, marginBottom: 24 }}>
+              Upgrade your{' '}
+              <span style={{ color: '#D4AF37', display: 'inline-block', animation: 'float 3s ease-in-out infinite' }}>financial</span>
+              <br />lifestyle{' '}
+              <span style={{ background: 'linear-gradient(135deg, #D4AF37, #F5D76E)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                <Typewriter words={['today.', 'with us.', 'effortlessly.', 'for India.']} />
               </span>
             </motion.h1>
 
@@ -409,19 +412,19 @@ export default function LandingPage() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.35, duration: 0.6 }}
-              style={{ fontSize: 16, color: 'rgba(255,255,255,0.5)', lineHeight: 1.75, marginBottom: 36, maxWidth: 480 }}>
-              BFHE gives you a real-time financial health score, tracks your net worth, builds smart budgets using the 50/30/20 rule, and runs what-if simulations — all built for India.
+              style={{ fontSize: 18, color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, marginBottom: 40, maxWidth: 500, letterSpacing: 0.3 }}>
+              BFHE delivers a premium, real-time financial health score, exclusive insights, and AI-driven recommendations tailored for the Indian ecosystem.
             </motion.p>
 
             <motion.div
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.45 }}
-              style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-              <motion.button whileHover={{ scale: 1.03, boxShadow: '0 8px 30px rgba(240,180,41,0.35)' }} whileTap={{ scale: 0.97 }}
+              style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+              <motion.button className="btn btn-primary" whileHover={{ scale: 1.03, boxShadow: '0 10px 40px rgba(212,175,55,0.3)' }} whileTap={{ scale: 0.97 }}
                 onClick={() => navigate('/register')}
-                style={{ background: 'linear-gradient(135deg,#F0B429,#d4960f)', border: 'none', borderRadius: 10, padding: '13px 26px', color: '#050810', cursor: 'pointer', fontSize: 15, fontFamily: "'Instrument Sans', sans-serif", fontWeight: 800, display: 'flex', alignItems: 'center', gap: 8 }}>
-                Get your free score →
+                style={{ padding: '16px 32px', fontSize: 14 }}>
+                GET YOUR FREE SCORE →
               </motion.button>
               
             </motion.div>
@@ -438,7 +441,7 @@ export default function LandingPage() {
                 ))}
               </div>
               <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)' }}>
-                <span style={{ color: '#F0B429', fontWeight: 700 }}>2,400+</span> professionals trust BFHE
+                <span style={{ color: '#D4AF37', fontWeight: 700 }}>2,400+</span> professionals trust BFHE
               </div>
             </motion.div>
           </motion.div>
@@ -480,13 +483,13 @@ export default function LandingPage() {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
           style={{ textAlign: 'center', marginBottom: 64 }}>
-          <div style={{ fontSize: 11, fontWeight: 800, color: '#F0B429', textTransform: 'uppercase', letterSpacing: 2, marginBottom: 12 }}>Everything you need</div>
+          <div style={{ fontSize: 11, fontWeight: 800, color: '#D4AF37', textTransform: 'uppercase', letterSpacing: 2, marginBottom: 12 }}>Everything you need</div>
           <h2 style={{ fontFamily: "'Cabinet Grotesk', sans-serif", fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 900, marginBottom: 16 }}>Accelerate your financial journey</h2>
           <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.45)', maxWidth: 500, margin: '0 auto', lineHeight: 1.7 }}>From scoring your health to running simulations — BFHE gives you every tool to master your money.</p>
         </motion.div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
-          <FeatureCard icon="⬡" title="Financial Health Score" desc="A single 0–100 score based on DTI, savings rate, emergency fund, credit usage and expense ratio — recalculated instantly." stat="5" statLabel="key metrics tracked" color="#F0B429" delay={0}/>
+          <FeatureCard icon="⬡" title="Financial Health Score" desc="A single 0–100 score based on DTI, savings rate, emergency fund, credit usage and expense ratio — recalculated instantly." stat="5" statLabel="key metrics tracked" color="#D4AF37" delay={0}/>
           <FeatureCard icon="◈" title="Net Worth Tracker" desc="Track every asset and liability — from FDs and stocks to home loans — with real-time allocation breakdowns." stat="10+" statLabel="asset categories" color="#0DCFAA" delay={0.07}/>
           <FeatureCard icon="◎" title="Goal Planning" desc="Set financial goals with AI feasibility analysis. Know exactly how much to save each month to hit your targets." stat="∞" statLabel="goals supported" color="#4F8EF7" delay={0.14}/>
           <FeatureCard icon="◧" title="Smart Budget Planner" desc="The 50/30/20 rule, customized for your income. See needs, wants and savings with interactive sliders." stat="50/30/20" statLabel="budgeting framework" color="#9061F9" delay={0.21}/>
@@ -498,7 +501,7 @@ export default function LandingPage() {
       {/* ── STATS SECTION ───────────────────────────────────────────────────── */}
       <section style={{ background: 'rgba(255,255,255,0.02)', borderTop: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
         <div className="grid-4-to-1" style={{ maxWidth: 1000, margin: '0 auto' }}>
-          <StatCounter value={2400} suffix="+" label="Active users" color="#F0B429" delay={0}/>
+          <StatCounter value={2400} suffix="+" label="Active users" color="#D4AF37" delay={0}/>
           <StatCounter value={85} suffix="%" label="Average score improvement in 3 months" color="#0DCFAA" delay={0.1}/>
           <StatCounter value={4200} suffix="+" label="Financial goals tracked" color="#4F8EF7" delay={0.2}/>
           <StatCounter value={98} suffix="%" label="Users say BFHE changed their habits" color="#9061F9" delay={0.3}/>
@@ -518,7 +521,7 @@ export default function LandingPage() {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
           {[
-            { step: '01', title: 'Create your free account', desc: 'Sign up in 30 seconds — no credit card, no KYC. Just your name and role.', icon: '🔐', color: '#F0B429' },
+            { step: '01', title: 'Create your free account', desc: 'Sign up in 30 seconds — no credit card, no KYC. Just your name and role.', icon: '🔐', color: '#D4AF37' },
             { step: '02', title: 'Enter your financial profile', desc: 'Input income, expenses, loans and savings. The guided wizard makes it easy.', icon: '📋', color: '#0DCFAA' },
             { step: '03', title: 'Get your score instantly', desc: 'Your personalized financial health score appears with a full breakdown and action plan.', icon: '⬡', color: '#4F8EF7' },
             { step: '04', title: 'Track, simulate, improve', desc: 'Set goals, run simulations, follow recommendations and watch your score climb.', icon: '📈', color: '#9061F9' },
@@ -556,7 +559,7 @@ export default function LandingPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
             {[
               { name: 'Priya Mehta', role: 'Software Engineer, Bengaluru', quote: 'My score went from 52 to 74 in 2 months. The simulator showed me exactly which loan to pay off first.', avatar: '👩‍💻', score: 74, color: '#0DCFAA' },
-              { name: 'Rahul Gupta', role: 'Business Owner, Delhi', quote: 'Never understood my finances until BFHE. The 50/30/20 planner alone saved me ₹18,000 last month.', avatar: '👨‍🏭', score: 68, color: '#F0B429' },
+              { name: 'Rahul Gupta', role: 'Business Owner, Delhi', quote: 'Never understood my finances until BFHE. The 50/30/20 planner alone saved me ₹18,000 last month.', avatar: '👨‍🏭', score: 68, color: '#D4AF37' },
               { name: 'Ananya Singh', role: 'Product Manager, Mumbai', quote: 'The goal tracker is incredible. I\'m on track for my house down payment 4 months ahead of schedule!', avatar: '👩‍🔬', score: 82, color: '#4F8EF7' },
             ].map((t, i) => (
               <motion.div key={i}
@@ -590,12 +593,12 @@ export default function LandingPage() {
           style={{ position: 'relative', zIndex: 1 }}>
           <h2 style={{ fontFamily: "'Cabinet Grotesk', sans-serif", fontSize: 'clamp(32px, 5vw, 56px)', fontWeight: 900, lineHeight: 1.1, marginBottom: 20 }}>
             Start your financial<br />
-            <span style={{ color: '#F0B429' }}>health journey today</span>
+            <span style={{ color: '#D4AF37' }}>health journey today</span>
           </h2>
           <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.45)', marginBottom: 36, maxWidth: 440, margin: '0 auto 36px' }}>Join thousands of Indians who've taken control of their finances with BFHE. Free forever.</p>
           <motion.button whileHover={{ scale: 1.04, boxShadow: '0 12px 40px rgba(240,180,41,0.4)' }} whileTap={{ scale: 0.97 }}
             onClick={() => navigate('/register')}
-            style={{ background: 'linear-gradient(135deg,#F0B429,#d4960f)', border: 'none', borderRadius: 12, padding: '16px 36px', color: '#050810', cursor: 'pointer', fontSize: 17, fontFamily: "'Instrument Sans', sans-serif", fontWeight: 800 }}>
+            style={{ background: 'linear-gradient(135deg,#D4AF37,#b8860b)', border: 'none', borderRadius: 12, padding: '16px 36px', color: '#050810', cursor: 'pointer', fontSize: 17, fontFamily: "'Instrument Sans', sans-serif", fontWeight: 800 }}>
             Get your free score →
           </motion.button>
           <div style={{ marginTop: 16, fontSize: 12, color: 'rgba(255,255,255,0.25)' }}>No credit card · No KYC · 100% free</div>
@@ -610,7 +613,7 @@ export default function LandingPage() {
           <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: 40, borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: 40, marginBottom: 40 }}>
             <div style={{ flex: '1 1 400px', maxWidth: 450 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg,#F0B429,#d4960f)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 14, color: '#050810' }}>₹</div>
+                <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg,#D4AF37,#b8860b)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 14, color: '#050810' }}>₹</div>
                 <span style={{ fontFamily: "'Cabinet Grotesk', sans-serif", fontWeight: 800, fontSize: 16, letterSpacing: 1.5, color: '#fff' }}>BFHE</span>
               </div>
               <p style={{ lineHeight: 1.7, marginBottom: 24 }}>
@@ -623,7 +626,7 @@ export default function LandingPage() {
               <p style={{ marginBottom: 20, fontSize: 13 }}>Get notified about upcoming features, exclusive financial insights, and market announcements.</p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
                 <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="your@email.com" style={{ flex: '1 1 200px', background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '12px 16px', color: '#fff', outline: 'none' }} />
-                <button onClick={handleSubscribe} disabled={subscribeStatus === 'loading' || subscribeStatus === 'success'} style={{ flex: '1 1 120px', background: subscribeStatus === 'success' ? '#31C48D' : '#F0B429', border: 'none', borderRadius: 8, padding: '12px 24px', color: '#050810', fontWeight: 800, cursor: (subscribeStatus === 'loading' || subscribeStatus === 'success') ? 'not-allowed' : 'pointer', letterSpacing: 0.5 }}>
+                <button onClick={handleSubscribe} disabled={subscribeStatus === 'loading' || subscribeStatus === 'success'} style={{ flex: '1 1 120px', background: subscribeStatus === 'success' ? '#31C48D' : '#D4AF37', border: 'none', borderRadius: 8, padding: '12px 24px', color: '#050810', fontWeight: 800, cursor: (subscribeStatus === 'loading' || subscribeStatus === 'success') ? 'not-allowed' : 'pointer', letterSpacing: 0.5 }}>
                   {subscribeStatus === 'loading' ? '...' : subscribeStatus === 'success' ? 'SUBSCRIBED ✅' : 'SUBSCRIBE'}
                 </button>
               </div>
@@ -663,7 +666,7 @@ export default function LandingPage() {
               <h4 style={{ color: '#fff', fontSize: 12, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 20, fontWeight: 700 }}>Support</h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <div style={{ display: 'flex', gap: 10 }}>
-                  <span style={{ color: '#F0B429' }}>✉</span>
+                  <span style={{ color: '#D4AF37' }}>✉</span>
                   <a href="mailto:bharat.bfhe@gmail.com" style={{ color: 'inherit', textDecoration: 'none' }}>bharat.bfhe@gmail.com</a>
                 </div>
               </div>
