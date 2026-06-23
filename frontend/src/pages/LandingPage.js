@@ -616,12 +616,6 @@ export default function LandingPage() {
               <p style={{ lineHeight: 1.7, marginBottom: 24 }}>
                 Bharat Financial Health Engine (BFHE) is an India-specific FinTech platform dedicated to delivering world-class financial insights, smart budgeting, and personalized recommendations to help you achieve financial freedom.
               </p>
-              <div style={{ display: 'flex', gap: 12 }}>
-                {/* Social Icons */}
-                {['📘', '🐦', '📸', '▶️'].map((icon, i) => (
-                  <div key={i} style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: '0.2s' }}>{icon}</div>
-                ))}
-              </div>
             </div>
 
             <div style={{ flex: '1 1 400px', maxWidth: 450 }}>
@@ -640,35 +634,33 @@ export default function LandingPage() {
           {/* Middle Section - Columns */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 40, borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: 40, marginBottom: 30 }}>
             <div>
-              <h4 style={{ color: '#fff', fontSize: 12, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 20, fontWeight: 700 }}>Explore</h4>
+              <h4 style={{ color: '#fff', fontSize: 12, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 20, fontWeight: 700 }}>Features</h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Home</a>
-                <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Features</a>
-                <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Dashboard</a>
-                <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Success Stories</a>
+                <a href="/dashboard" style={{ color: 'inherit', textDecoration: 'none' }}>Dashboard</a>
+                <a href="/net-worth" style={{ color: 'inherit', textDecoration: 'none' }}>Net Worth Tracker</a>
+                <a href="/budget" style={{ color: 'inherit', textDecoration: 'none' }}>Smart Budgeting</a>
+                <a href="/recommendations" style={{ color: 'inherit', textDecoration: 'none' }}>AI Recommendations</a>
               </div>
             </div>
             <div>
               <h4 style={{ color: '#fff', fontSize: 12, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 20, fontWeight: 700 }}>My Account</h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Profile</a>
+                <a href="/dashboard" style={{ color: 'inherit', textDecoration: 'none' }}>My Profile</a>
                 <a href="/login" style={{ color: 'inherit', textDecoration: 'none' }}>Sign In</a>
                 <a href="/register" style={{ color: 'inherit', textDecoration: 'none' }}>Create Account</a>
-                <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Careers</a>
-                <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>FAQs</a>
               </div>
             </div>
             <div>
               <h4 style={{ color: '#fff', fontSize: 12, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 20, fontWeight: 700 }}>Company & Legal</h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>About Us</a>
-                <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Contact Us</a>
+                <a href="mailto:bharat.bfhe@gmail.com" style={{ color: 'inherit', textDecoration: 'none' }}>Contact Us</a>
                 <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Terms & Conditions</a>
                 <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Privacy Policy</a>
               </div>
             </div>
             <div>
-              <h4 style={{ color: '#fff', fontSize: 12, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 20, fontWeight: 700 }}>Contact Us</h4>
+              <h4 style={{ color: '#fff', fontSize: 12, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 20, fontWeight: 700 }}>Support</h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <div style={{ display: 'flex', gap: 10 }}>
                   <span style={{ color: '#F0B429' }}>✉</span>
