@@ -591,18 +591,90 @@ export default function LandingPage() {
       </section>
 
       {/* ── FOOTER ──────────────────────────────────────────────────────────── */}
-      <footer style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '40px 40px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 28, height: 28, borderRadius: 7, background: 'linear-gradient(135deg,#F0B429,#d4960f)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 12, color: '#050810' }}>₹</div>
-          <span style={{ fontFamily: "'Cabinet Grotesk', sans-serif", fontWeight: 800, fontSize: 13, letterSpacing: 1.5 }}>BFHE</span>
-          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)' }}>© 2025 Bharat Financial Health Engine</span>
-        </div>
-        <div style={{ display: 'flex', gap: 24 }}>
-          {['Privacy', 'Terms', 'Contact'].map(l => (
-            <a key={l} href="#" style={{ fontSize: 13, color: 'rgba(255,255,255,0.3)', textDecoration: 'none', transition: 'color 0.15s' }}
-              onMouseEnter={e => e.target.style.color = 'rgba(255,255,255,0.7)'}
-              onMouseLeave={e => e.target.style.color = 'rgba(255,255,255,0.3)'}>{l}</a>
-          ))}
+      <footer style={{ borderTop: '1px solid rgba(255,255,255,0.06)', background: '#050810', color: 'rgba(255,255,255,0.5)', padding: '60px 40px 30px', fontSize: 14 }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+          
+          {/* Top Section */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: 40, borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: 40, marginBottom: 40 }}>
+            <div style={{ flex: '1 1 400px', maxWidth: 450 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+                <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg,#F0B429,#d4960f)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 14, color: '#050810' }}>₹</div>
+                <span style={{ fontFamily: "'Cabinet Grotesk', sans-serif", fontWeight: 800, fontSize: 16, letterSpacing: 1.5, color: '#fff' }}>BFHE</span>
+              </div>
+              <p style={{ lineHeight: 1.7, marginBottom: 24 }}>
+                Bharat Financial Health Engine (BFHE) is an India-specific FinTech platform dedicated to delivering world-class financial insights, smart budgeting, and personalized recommendations to help you achieve financial freedom.
+              </p>
+              <div style={{ display: 'flex', gap: 12 }}>
+                {/* Social Icons */}
+                {['📘', '🐦', '📸', '▶️'].map((icon, i) => (
+                  <div key={i} style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: '0.2s' }}>{icon}</div>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ flex: '1 1 400px', maxWidth: 450 }}>
+              <h4 style={{ color: '#fff', fontSize: 13, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 12, fontWeight: 700 }}>Stay in the Loop</h4>
+              <p style={{ marginBottom: 20, fontSize: 13 }}>Get notified about upcoming features, exclusive financial insights, and market announcements.</p>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <input type="email" placeholder="your@email.com" style={{ flex: 1, background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '12px 16px', color: '#fff', outline: 'none' }} />
+                <button style={{ background: '#F0B429', border: 'none', borderRadius: 8, padding: '0 24px', color: '#050810', fontWeight: 800, cursor: 'pointer', letterSpacing: 0.5 }}>SUBSCRIBE</button>
+              </div>
+              <p style={{ fontSize: 11, marginTop: 12, color: 'rgba(255,255,255,0.3)' }}>No spam. Unsubscribe anytime. Your data is never shared.</p>
+            </div>
+          </div>
+
+          {/* Middle Section - Columns */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 40, borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: 40, marginBottom: 30 }}>
+            <div>
+              <h4 style={{ color: '#fff', fontSize: 12, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 20, fontWeight: 700 }}>Explore</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Home</a>
+                <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Features</a>
+                <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Dashboard</a>
+                <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Success Stories</a>
+              </div>
+            </div>
+            <div>
+              <h4 style={{ color: '#fff', fontSize: 12, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 20, fontWeight: 700 }}>My Account</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Profile</a>
+                <a href="/login" style={{ color: 'inherit', textDecoration: 'none' }}>Sign In</a>
+                <a href="/register" style={{ color: 'inherit', textDecoration: 'none' }}>Create Account</a>
+                <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Careers</a>
+                <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>FAQs</a>
+              </div>
+            </div>
+            <div>
+              <h4 style={{ color: '#fff', fontSize: 12, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 20, fontWeight: 700 }}>Company & Legal</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>About Us</a>
+                <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Contact Us</a>
+                <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Terms & Conditions</a>
+                <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Privacy Policy</a>
+              </div>
+            </div>
+            <div>
+              <h4 style={{ color: '#fff', fontSize: 12, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 20, fontWeight: 700 }}>Contact Us</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <span style={{ color: '#F0B429' }}>✉</span>
+                  <a href="mailto:bharat.bfhe@gmail.com" style={{ color: 'inherit', textDecoration: 'none' }}>bharat.bfhe@gmail.com</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Section */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 20, fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>
+            <div>© 2026 Bharat Financial Health Engine. All rights reserved. • bfhe.in</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span>IN India</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#31C48D' }}>
+                <span style={{ fontSize: 14 }}>🔒</span> Secure & Encrypted
+              </div>
+            </div>
+          </div>
+
         </div>
       </footer>
     </div>
