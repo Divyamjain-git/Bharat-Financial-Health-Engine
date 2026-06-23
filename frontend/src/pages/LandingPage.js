@@ -286,6 +286,18 @@ export default function LandingPage() {
   const heroY = useTransform(scrollY, [0, 500], [0, -80]);
   const heroOpacity = useTransform(scrollY, [0, 400], [1, 0]);
   const [scrolled, setScrolled] = useState(false);
+  const [email, setEmail] = useState('');
+  const [subscribeStatus, setSubscribeStatus] = useState('idle'); // idle, loading, success
+
+  const handleSubscribe = () => {
+    if (!email.includes('@')) return;
+    setSubscribeStatus('loading');
+    setTimeout(() => {
+      setSubscribeStatus('success');
+      setEmail('');
+      setTimeout(() => setSubscribeStatus('idle'), 3000);
+    }, 1000);
+  };
 
   useEffect(() => {
     const unsub = scrollY.onChange(v => setScrolled(v > 40));
@@ -616,8 +628,10 @@ export default function LandingPage() {
               <h4 style={{ color: '#fff', fontSize: 13, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 12, fontWeight: 700 }}>Stay in the Loop</h4>
               <p style={{ marginBottom: 20, fontSize: 13 }}>Get notified about upcoming features, exclusive financial insights, and market announcements.</p>
               <div style={{ display: 'flex', gap: 10 }}>
-                <input type="email" placeholder="your@email.com" style={{ flex: 1, background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '12px 16px', color: '#fff', outline: 'none' }} />
-                <button style={{ background: '#F0B429', border: 'none', borderRadius: 8, padding: '0 24px', color: '#050810', fontWeight: 800, cursor: 'pointer', letterSpacing: 0.5 }}>SUBSCRIBE</button>
+                <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="your@email.com" style={{ flex: 1, background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '12px 16px', color: '#fff', outline: 'none' }} />
+                <button onClick={handleSubscribe} disabled={subscribeStatus === 'loading' || subscribeStatus === 'success'} style={{ background: subscribeStatus === 'success' ? '#31C48D' : '#F0B429', border: 'none', borderRadius: 8, padding: '0 24px', color: '#050810', fontWeight: 800, cursor: (subscribeStatus === 'loading' || subscribeStatus === 'success') ? 'not-allowed' : 'pointer', letterSpacing: 0.5 }}>
+                  {subscribeStatus === 'loading' ? '...' : subscribeStatus === 'success' ? 'SUBSCRIBED ✅' : 'SUBSCRIBE'}
+                </button>
               </div>
               <p style={{ fontSize: 11, marginTop: 12, color: 'rgba(255,255,255,0.3)' }}>No spam. Unsubscribe anytime. Your data is never shared.</p>
             </div>
@@ -666,7 +680,7 @@ export default function LandingPage() {
 
           {/* Bottom Section */}
           <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 20, fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>
-            <div>© 2026 Bharat Financial Health Engine. All rights reserved. • bfhe.in</div>
+            <div>© 2026 Bharat Financial Health Engine. All rights reserved. • bfhe.vercel.app</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <span>IN India</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#31C48D' }}>
