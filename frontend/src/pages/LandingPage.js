@@ -621,9 +621,9 @@ export default function LandingPage() {
             <div style={{ flex: '1 1 400px', maxWidth: 450 }}>
               <h4 style={{ color: '#fff', fontSize: 13, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 12, fontWeight: 700 }}>Stay in the Loop</h4>
               <p style={{ marginBottom: 20, fontSize: 13 }}>Get notified about upcoming features, exclusive financial insights, and market announcements.</p>
-              <div style={{ display: 'flex', gap: 10 }}>
-                <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="your@email.com" style={{ flex: 1, background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '12px 16px', color: '#fff', outline: 'none' }} />
-                <button onClick={handleSubscribe} disabled={subscribeStatus === 'loading' || subscribeStatus === 'success'} style={{ background: subscribeStatus === 'success' ? '#31C48D' : '#F0B429', border: 'none', borderRadius: 8, padding: '0 24px', color: '#050810', fontWeight: 800, cursor: (subscribeStatus === 'loading' || subscribeStatus === 'success') ? 'not-allowed' : 'pointer', letterSpacing: 0.5 }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="your@email.com" style={{ flex: '1 1 200px', background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '12px 16px', color: '#fff', outline: 'none' }} />
+                <button onClick={handleSubscribe} disabled={subscribeStatus === 'loading' || subscribeStatus === 'success'} style={{ flex: '1 1 120px', background: subscribeStatus === 'success' ? '#31C48D' : '#F0B429', border: 'none', borderRadius: 8, padding: '12px 24px', color: '#050810', fontWeight: 800, cursor: (subscribeStatus === 'loading' || subscribeStatus === 'success') ? 'not-allowed' : 'pointer', letterSpacing: 0.5 }}>
                   {subscribeStatus === 'loading' ? '...' : subscribeStatus === 'success' ? 'SUBSCRIBED ✅' : 'SUBSCRIBE'}
                 </button>
               </div>
