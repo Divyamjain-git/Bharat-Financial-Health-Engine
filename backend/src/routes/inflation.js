@@ -11,4 +11,7 @@ r.post('/goal-planner', protect, c.goalPlanner);
 r.post('/emergency-fund', protect, c.emergencyFundErosion);
 r.post('/simulate', protect, c.inflationSimulate);
 
+// Manual refresh — force re-fetch from APIs (admin/debug use)
+r.post('/refresh', protect, c.refreshData);
+
 module.exports = r;

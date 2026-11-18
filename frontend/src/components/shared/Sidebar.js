@@ -9,6 +9,7 @@ const NAV = [
   { path: '/net-worth', icon: '◈', label: 'Net Worth' },
   { path: '/goals', icon: '◎', label: 'Goals' },
   { path: '/budget', icon: '◧', label: 'Budget Planner' },
+  { path: '/taxation', icon: '🏛️', label: 'Tax & In-Hand Pay' },
   { path: '/simulation', icon: '⟳', label: 'Simulator' },
   { path: '/inflation', icon: '〽', label: 'Inflation' },
   { path: '/recommendations', icon: '✦', label: 'AI Recommendations', aibadge: true },

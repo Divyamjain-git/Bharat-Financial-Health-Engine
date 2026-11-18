@@ -5,6 +5,7 @@ const {
   purchasingPowerDecay,
   realReturn,
   inflationAdjustedGoalSIP,
+  fetchAndPersist,
 } = require('../services/inflationService');
 
 exports.getRate = async (req, res, next) => {
@@ -209,5 +210,14 @@ exports.inflationSimulate = async (req, res, next) => {
         recommendedActions: actions,
       },
     });
+  } catch (e) { next(e); }
+};
+
+// Manual refresh endpoint — force re-fetch from APIs and update DB
+exports.refreshData = async (req, res, next) => {
+  try {
+    await fetchAndPersist();
+    const data = await getLiveInflationRate();
+    res.json({ success: true, message: 'Inflation data refreshed successfully', data });
   } catch (e) { next(e); }
 };

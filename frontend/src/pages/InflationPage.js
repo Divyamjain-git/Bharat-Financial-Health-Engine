@@ -1,4 +1,4 @@
-// import React, { useState, useEffect, useCallback } from 'react';
+// import React, { useState, useEffect, useCallback, useMemo } from 'react';
 // import { motion, AnimatePresence } from 'framer-motion';
 // import {
 //   LineChart, Line, AreaChart, Area, BarChart, Bar,
@@ -199,7 +199,7 @@
 
 //                 {cpiData.historical?.length > 0 && (
 //                   <div className="card">
-//                     <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 800, marginBottom: 4 }}>CPI Trend — Last 13 Months</div>
+//                     <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 800, marginBottom: 4 }}>CPI Trend — {cpiData.historical?.length || 0} Months</div>
 //                     <div style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 18 }}>India headline inflation (year-on-year %)</div>
 //                     <ResponsiveContainer width="100%" height={220}>
 //                       <AreaChart data={cpiData.historical} margin={{ top: 10, right: 10, bottom: 0, left: -10 }}>
@@ -628,7 +628,7 @@
 //     </div>
 //   );
 // }
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LineChart, Line, AreaChart, Area, BarChart, Bar,
@@ -698,6 +698,30 @@ export default function InflationPage() {
   const [tab, setTab] = useState('overview');
   const [cpiData, setCpiData] = useState(null);
   const [cpiLoading, setCpiLoading] = useState(true);
+  const [timeframe, setTimeframe] = useState('1Y');
+
+  // Filter historical YoY CPI by timeframe (1 Year, 3 Years, 5 Years, All)
+  const displayHistorical = useMemo(() => {
+    if (!cpiData?.historical?.length) return [];
+    if (timeframe === '1Y') return cpiData.historical.slice(-12);
+    if (timeframe === '3Y') return cpiData.historical.slice(-36);
+    if (timeframe === '5Y') return cpiData.historical.slice(-60);
+    return cpiData.historical; // ALL
+  }, [cpiData, timeframe]);
+
+  const periodStats = useMemo(() => {
+    if (!displayHistorical.length) return null;
+    const rates = displayHistorical.map(d => d.rate);
+    const avg = rates.reduce((a, b) => a + b, 0) / rates.length;
+    const min = Math.min(...rates);
+    const max = Math.max(...rates);
+    return {
+      avg: avg.toFixed(2),
+      min: min.toFixed(2),
+      max: max.toFixed(2),
+      count: displayHistorical.length
+    };
+  }, [displayHistorical]);
 
   // Goal planner state
   const [goalForm, setGoalForm] = useState({ goalName: '', nominalTarget: '', yearsToGoal: '', expectedReturn: '7', customInflationRate: '' });
@@ -829,10 +853,63 @@ export default function InflationPage() {
 
                 {cpiData.historical?.length > 0 && (
                   <div className="card">
-                    <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 800, marginBottom: 4 }}>CPI Trend — Last 13 Months</div>
-                    <div style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 18 }}>India headline inflation (year-on-year %)</div>
-                    <ResponsiveContainer width="100%" height={220}>
-                      <AreaChart data={cpiData.historical} margin={{ top: 10, right: 10, bottom: 0, left: -10 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12, marginBottom: 18 }}>
+                      <div>
+                        <div style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 800, marginBottom: 4 }}>
+                          CPI Inflation Trend (YoY)
+                        </div>
+                        <div style={{ fontSize: 13, color: 'var(--text-2)' }}>
+                          India headline YoY inflation rate (%)
+                          {periodStats && (
+                            <span style={{ marginLeft: 8, color: 'var(--text-3)' }}>
+                              · Period Avg: <strong style={{ color: 'var(--text)' }}>{periodStats.avg}%</strong> ({periodStats.min}% – {periodStats.max}%)
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Investing site style Timeframe selector */}
+                      <div style={{
+                        display: 'inline-flex',
+                        background: 'var(--bg-elevated)',
+                        padding: 3,
+                        borderRadius: 8,
+                        border: '1px solid var(--border)',
+                        gap: 3
+                      }}>
+                        {[
+                          { key: '1Y', label: '1 Year' },
+                          { key: '3Y', label: '3 Years' },
+                          { key: '5Y', label: '5 Years' },
+                          { key: 'ALL', label: 'All' },
+                        ].map(tf => {
+                          const active = timeframe === tf.key;
+                          return (
+                            <button
+                              key={tf.key}
+                              type="button"
+                              onClick={() => setTimeframe(tf.key)}
+                              style={{
+                                background: active ? 'var(--primary)' : 'transparent',
+                                color: active ? '#fff' : 'var(--text-2)',
+                                border: 'none',
+                                padding: '5px 12px',
+                                borderRadius: 6,
+                                fontSize: 12,
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                transition: 'all 0.15s ease',
+                              }}
+                            >
+                              {tf.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <ResponsiveContainer width="100%" height={230}>
+                      <AreaChart data={displayHistorical} margin={{ top: 10, right: 10, bottom: 0, left: -10 }}>
                         <defs>
                           <linearGradient id="cpiGrad" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="5%" stopColor={rateColor} stopOpacity={0.25} />
@@ -840,19 +917,19 @@ export default function InflationPage() {
                           </linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                        <XAxis dataKey="month" tick={{ fill: 'var(--text-3)', fontSize: 10 }} />
+                        <XAxis dataKey="month" tick={{ fill: 'var(--text-3)', fontSize: 10 }} minTickGap={25} />
                         <YAxis tick={{ fill: 'var(--text-3)', fontSize: 10 }} domain={[0, 'auto']} />
                         <Tooltip content={<ChartTooltip prefix="" />} cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1 }} />
                         <ReferenceLine y={4} stroke="var(--blue)" strokeDasharray="4 3" label={{ value: 'RBI 4%', fill: 'var(--blue)', fontSize: 10 }} />
                         <ReferenceLine y={2} stroke="var(--green)" strokeDasharray="4 3" label={{ value: '2%', fill: 'var(--green)', fontSize: 10 }} />
                         <ReferenceLine y={6} stroke="var(--red)" strokeDasharray="4 3" label={{ value: '6%', fill: 'var(--red)', fontSize: 10 }} />
-                        <Area type="monotone" dataKey="rate" stroke={rateColor} fill="url(#cpiGrad)" strokeWidth={2} dot={{ fill: rateColor, r: 3 }} name="CPI %" />
+                        <Area type="monotone" dataKey="rate" stroke={rateColor} fill="url(#cpiGrad)" strokeWidth={2} dot={{ fill: rateColor, r: 3 }} name="YoY CPI %" />
                       </AreaChart>
                     </ResponsiveContainer>
 
                     <div style={{ marginTop: 20, padding: '14px 16px', background: 'var(--bg-elevated)', borderRadius: 10, fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>
                       <strong style={{ color: 'var(--text)' }}>What this means for you: </strong>
-                      At {pct(cpiData.rate)} inflation, ₹1,00,000 today will require{' '}
+                      At {pct(cpiData.rate)} YoY inflation, ₹1,00,000 today will require{' '}
                       <strong style={{ color: rateColor }}>₹{fmt(100000 * Math.pow(1 + cpiData.rate / 100, 5))}</strong> in 5 years to buy the same things.
                       Your savings need to beat this rate to grow in real terms.
                     </div>
